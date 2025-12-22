@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { MyceliumBackground } from './components/MyceliumBackground';
 import { VevePattern } from './components/VevePattern';
 import { Hero } from './components/Hero';
+import { DOLPlayground } from './components/DOLPlayground';
 import { Roadmap } from './components/Roadmap';
 
 function LoadingScreen() {
@@ -195,6 +196,8 @@ export default function App() {
       
       <main className="relative z-10">
         <Hero />
+        <VeveDivider />
+        <DOLPlayground />
         <VeveDivider />
         <VocabularySection />
         <ManifestoSection />
