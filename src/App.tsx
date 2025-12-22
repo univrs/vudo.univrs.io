@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -192,9 +191,8 @@ function Footer() {
 function AppContent() {
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
-      <Suspense fallback={<LoadingScreen />}>
-        <MyceliumBackground nodeCount={50} connectionProbability={0.2} />
-      </Suspense>
+      {/* MyceliumBackground handles its own loading state internally */}
+      <MyceliumBackground nodeCount={50} connectionProbability={0.2} />
       
       <ThemeToggle />
       
