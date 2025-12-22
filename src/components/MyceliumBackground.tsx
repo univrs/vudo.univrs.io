@@ -135,11 +135,21 @@ export function MyceliumBackground({
   nodeCount = 60,
   connectionProbability = 0.25,
 }: MyceliumProps) {
+  // Detect mobile devices to reduce performance load
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  }, []);
+
+  // Reduce node count and connection probability on mobile for better performance
+  const effectiveNodeCount = isMobile ? Math.floor(nodeCount / 2) : nodeCount;
+  const effectiveConnectionProbability = isMobile ? connectionProbability * 0.5 : connectionProbability;
+
   return (
     <div className="fixed inset-0 -z-10 bg-[#0a0a0f]">
-      <Canvas camera={{ position: [0, 0, 12], fov: 60 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas camera={{ position: [0, 0, 12], fov: 60 }} gl={{ antialias: !isMobile, alpha: true }}>
         <ambientLight intensity={0.1} />
-        <MyceliumNetwork nodeCount={nodeCount} connectionProbability={connectionProbability} />
+        <MyceliumNetwork nodeCount={effectiveNodeCount} connectionProbability={effectiveConnectionProbability} />
         <fog attach="fog" args={['#0a0a0f', 8, 20]} />
       </Canvas>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0f]/80" />

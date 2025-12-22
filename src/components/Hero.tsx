@@ -38,15 +38,15 @@ export function Hero() {
                 initial="hidden"
                 animate="visible"
             >
-                <div className="flex justify-center items-center gap-4 md:gap-8 mb-6">
+                <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-6 lg:gap-8 mb-6">
                     {title.split("").map((letter, i) => (
                         <motion.span
                             key={i}
                             variants={letterVariants}
-                            className="text-6xl md:text-8xl lg:text-9xl font-light tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60"
+                            className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-light tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60"
                             style={{
                                 fontFamily: "Space Grotesk, sans-serif",
-                                textShadow: "0 0 60px rgba(0, 255, 136, 0.3)",
+                                textShadow: "0 0 30px rgba(0, 255, 136, 0.3)",
                             }}
                         >
                             {letter}
@@ -85,7 +85,12 @@ export function Hero() {
                     variants={fadeUpVariants}
                     className="flex justify-center mb-12"
                 >
-                    <VevePattern type="mitan" size={120} delay={1.5} />
+                    <div className="md:hidden">
+                        <VevePattern type="mitan" size={80} delay={1.5} />
+                    </div>
+                    <div className="hidden md:block">
+                        <VevePattern type="mitan" size={120} delay={1.5} />
+                    </div>
                 </motion.div>
 
                 <motion.div

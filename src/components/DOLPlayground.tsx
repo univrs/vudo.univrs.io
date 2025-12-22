@@ -309,7 +309,7 @@ function HighlightedCode({ code }: { code: string }) {
     };
 
     return (
-        <pre className="text-sm leading-relaxed font-mono">
+        <pre className="text-xs sm:text-sm leading-relaxed font-mono">
             <code>
                 {tokens.map((token, i) => (
                     <span key={i} className={colorMap[token.type]}>
@@ -382,7 +382,7 @@ export function DOLPlayground() {
     }, [activeExample]);
 
     return (
-        <section className="relative py-32 px-6">
+        <section className="relative py-16 md:py-32 px-4 md:px-6">
             <div className="max-w-5xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -405,7 +405,7 @@ export function DOLPlayground() {
                         <button
                             key={ex.name}
                             onClick={() => setActiveExample(i)}
-                            className={`px-4 py-2 text-sm rounded-sm transition-all duration-300 ${
+                            className={`px-4 py-2 text-sm rounded-sm transition-all duration-300 min-h-[44px] ${
                                 i === activeExample
                                     ? "bg-[#00ff88]/20 text-[#00ff88] border border-[#00ff88]/50"
                                     : "bg-white/5 text-white/50 border border-white/10 hover:border-white/30"
@@ -417,7 +417,7 @@ export function DOLPlayground() {
                 </div>
 
                 {/* Editor and Output */}
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                     {/* Code Editor */}
                     <motion.div
                         className="relative"
@@ -491,7 +491,7 @@ export function DOLPlayground() {
                             </div>
 
                             {/* Output content */}
-                            <div className="p-4 min-h-[200px]">
+                            <div className="p-4 min-h-[150px] md:min-h-[200px]">
                                 <AnimatePresence mode="wait">
                                     {isCompiling ? (
                                         <motion.div
