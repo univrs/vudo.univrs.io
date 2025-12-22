@@ -1,7 +1,10 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef, useMemo } from 'react';
+import { Canvas, useFrame, extend } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
+
+// Extend Three.js line to avoid conflict with SVG line
+extend({ Line_: THREE.Line });
 
 interface Node {
   id: string;
@@ -19,7 +22,6 @@ interface Edge {
 interface MyceliumProps {
   nodeCount?: number;
   connectionProbability?: number;
-  pulseSpeed?: number;
 }
 
 function generateNetwork(nodeCount: number, connectionProbability: number) {
@@ -90,8 +92,6 @@ function MyceliumNode({ node }: { node: Node }) {
 }
 
 function MyceliumEdge({ from, to }: { from: THREE.Vector3; to: THREE.Vector3 }) {
-  const lineRef = useRef<THREE.Line>(null);
-  
   const points = useMemo(() => {
     const mid = from.clone().add(to).multiplyScalar(0.5);
     const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
@@ -99,12 +99,9 @@ function MyceliumEdge({ from, to }: { from: THREE.Vector3; to: THREE.Vector3 }) 
   }, [from, to]);
   
   const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+  const material = useMemo(() => new THREE.LineBasicMaterial({ color: '#00ff88', transparent: true, opacity: 0.2 }), []);
   
-  return (
-    <line ref={lineRef} geometry={geometry}>
-      <lineBasicMaterial color="#00ff88" transparent opacity={0.2} />
-    </line>
-  );
+  return <primitive object={new THREE.Line(geometry, material)} />;
 }
 
 function MyceliumNetwork({ nodeCount = 50, connectionProbability = 0.25 }: MyceliumProps) {

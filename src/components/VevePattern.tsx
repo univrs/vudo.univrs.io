@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
 
 type VeveType = 'mitan' | 'spirit' | 'seance' | 'mycelium' | 'loa';

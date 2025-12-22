@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { MyceliumBackground } from './components/MyceliumBackground';
 import { VevePattern } from './components/VevePattern';
@@ -135,7 +135,7 @@ function CTASection() {
           <div className="p-6 bg-white/5 border border-white/10 rounded-sm hover:border-[#00ff88]/30 transition-colors">
             <h3 className="text-[#00ff88] mb-2">For Developers</h3>
             <p className="text-sm text-white/50 mb-4">Clone the repo. Run the tests.<br />Write your first Gene.</p>
-            <a href="https://github.com/anthropics/metadol" className="text-sm text-[#00ff88] hover:text-[#00ff88]/80">
+            <a href="https://github.com/univrs/metadol" className="text-sm text-[#00ff88] hover:text-[#00ff88]/80">
               Start Building →
             </a>
           </div>
@@ -176,7 +176,7 @@ function Footer() {
         </div>
         
         <div className="flex items-center gap-6 text-sm text-white/40">
-          <a href="https://github.com/univrs-io" className="hover:text-white/60">GitHub</a>
+          <a href="https://github.com/univrs" className="hover:text-white/60">GitHub</a>
           <a href="https://learn.univrs.io" className="hover:text-white/60">Docs</a>
         </div>
         

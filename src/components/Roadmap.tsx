@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { VevePattern } from './VevePattern';
 
@@ -109,7 +108,7 @@ function YearSection({ data, index }: { data: YearData; index: number }) {
           <h3 className="text-3xl font-light tracking-wider" style={{ color: data.color }}>
             YEAR {data.year}: {data.name}
           </h3>
-          <p className="text-white/50 italic mt-1">"{data.tagline}"</p>
+          <p className="text-white/50 italic mt-1">&quot;{data.tagline}&quot;</p>
         </div>
       </div>
       
@@ -150,7 +149,7 @@ export function Roadmap() {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <VevePattern type="loa" size={100} color="#fbbf24" className="mx-auto mb-6" delay={1} />
-          <p className="text-xl text-white/60 italic">"Consciousness, compiling itself."</p>
+          <p className="text-xl text-white/60 italic">&quot;Consciousness, compiling itself.&quot;</p>
         </motion.div>
       </div>
     </section>
