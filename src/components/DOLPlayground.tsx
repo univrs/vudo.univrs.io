@@ -44,14 +44,14 @@ const examples: Example[] = [
     {
         name: "Pipeline",
         code: `gene Calculator {
-  function transform(x: Int32) -> Int32 {
+  fun transform(x: Int32) -> Int32 {
     return x
       |> double
       >> increment
       |> square
   }
 
-  function double(n: Int32) -> Int32 {
+  fun double(n: Int32) -> Int32 {
     return n * 2
   }
 }`,
@@ -68,7 +68,7 @@ const examples: Example[] = [
     {
         name: "Pattern Match",
         code: `gene Classifier {
-  function classify(n: Int32) -> String {
+  fun classify(n: Int32) -> String {
     match n {
       0 { return "zero" }
       n where n > 0 {
@@ -143,7 +143,7 @@ const KEYWORDS = new Set([
     "constraint",
     "evolves",
     "exegesis",
-    "function",
+    "fun",
     "return",
     "match",
     "if",
