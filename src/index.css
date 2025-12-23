@@ -24,7 +24,7 @@
     --text-primary: #0f172a;
     --text-secondary: rgba(15, 23, 42, 0.7);
     --text-muted: rgba(15, 23, 42, 0.5);
-    --glow-green: #059669;
+    --glow-green: #047857;
     --glow-purple: #7c3aed;
     --glow-gold: #d97706;
     --border-color: rgba(15, 23, 42, 0.1);
@@ -173,6 +173,67 @@ a {
 
 .light .bg-white\/10 {
     background-color: rgba(15, 23, 42, 0.1);
+}
+
+/* Green text overrides for accessibility in light mode */
+.light .text-\[\#00ff88\] {
+    color: var(--glow-green);
+}
+
+.light .text-\[\#00ff88\]\/80 {
+    color: color-mix(in srgb, var(--glow-green) 80%, transparent);
+}
+
+.light .text-\[\#00ff88\]\/60 {
+    color: color-mix(in srgb, var(--glow-green) 60%, transparent);
+}
+
+.light .border-\[\#00ff88\]\/30 {
+    border-color: color-mix(in srgb, var(--glow-green) 30%, transparent);
+}
+
+.light .border-\[\#00ff88\]\/50 {
+    border-color: color-mix(in srgb, var(--glow-green) 50%, transparent);
+}
+
+.light .bg-\[\#00ff88\]\/10 {
+    background-color: color-mix(in srgb, var(--glow-green) 10%, transparent);
+}
+
+.light .bg-\[\#00ff88\]\/20 {
+    background-color: color-mix(in srgb, var(--glow-green) 20%, transparent);
+}
+
+.light .hover\:bg-\[\#00ff88\]\/20:hover {
+    background-color: color-mix(in srgb, var(--glow-green) 20%, transparent);
+}
+
+.light .hover\:border-\[\#00ff88\]\/50:hover {
+    border-color: color-mix(in srgb, var(--glow-green) 50%, transparent);
+}
+
+.light .hover\:text-\[\#00ff88\]\/80:hover {
+    color: color-mix(in srgb, var(--glow-green) 80%, transparent);
+}
+
+/* Hero title gradient override for light mode */
+.light .bg-gradient-to-b.from-white.to-white\/60 {
+    --tw-gradient-from: #0f172a;
+    --tw-gradient-to: rgba(15, 23, 42, 0.7);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+/* Link hover states for light mode */
+.light .hover\:text-white\/90:hover {
+    color: var(--text-primary);
+}
+
+.light .hover\:text-white\/80:hover {
+    color: var(--text-secondary);
+}
+
+.light .hover\:border-white\/30:hover {
+    border-color: var(--border-color);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
