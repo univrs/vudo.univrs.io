@@ -45,6 +45,29 @@ import {
 } from "../PhysarumEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WEBGL DETECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function isWebGLAvailable(): boolean {
+    try {
+        const canvas = document.createElement("canvas");
+        return !!(
+            window.WebGLRenderingContext &&
+            (canvas.getContext("webgl") ||
+                canvas.getContext("experimental-webgl"))
+        );
+    } catch (e) {
+        return false;
+    }
+}
+
+function isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT PROPS
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -165,6 +188,10 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
         configOverride.scenario || DEFAULT_DEMO_CONFIG.scenario,
     );
     const [metrics, setMetrics] = useState<NetworkMetrics | null>(null);
+    const [webGLError, setWebGLError] = useState<string | null>(null);
+    const [isMobile] = useState(
+        () => typeof window !== "undefined" && isMobileDevice(),
+    );
 
     const config: DemoConfig = useMemo(
         () => ({
@@ -190,120 +217,145 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
     const initThree = useCallback(() => {
         if (!containerRef.current) return;
 
+        // Check WebGL availability
+        if (!isWebGLAvailable()) {
+            setWebGLError("WebGL is not supported on this device");
+            return;
+        }
+
         const container = containerRef.current;
         const width = container.clientWidth;
         const height = container.clientHeight;
 
-        // Scene
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(VUDO_COLORS.void);
-        scene.fog = new THREE.FogExp2(VUDO_COLORS.void, 0.02);
-        sceneRef.current = scene;
+        try {
+            // Scene
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(VUDO_COLORS.void);
+            scene.fog = new THREE.FogExp2(VUDO_COLORS.void, 0.02);
+            sceneRef.current = scene;
 
-        // Camera
-        const camera = new THREE.PerspectiveCamera(
-            60,
-            width / height,
-            0.1,
-            1000,
-        );
-        camera.position.set(0, 0, vizConfig.cameraDistance);
-        cameraRef.current = camera;
+            // Camera
+            const camera = new THREE.PerspectiveCamera(
+                60,
+                width / height,
+                0.1,
+                1000,
+            );
+            camera.position.set(0, 0, vizConfig.cameraDistance);
+            cameraRef.current = camera;
 
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true,
-        });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.5;
-        container.appendChild(renderer.domElement);
-        rendererRef.current = renderer;
+            // Renderer - with mobile-friendly settings
+            const renderer = new THREE.WebGLRenderer({
+                antialias: !isMobile, // Disable antialiasing on mobile
+                alpha: true,
+                powerPreference: isMobile ? "low-power" : "high-performance",
+                failIfMajorPerformanceCaveat: false,
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(
+                Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2),
+            );
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            renderer.toneMappingExposure = 1.5;
+            container.appendChild(renderer.domElement);
+            rendererRef.current = renderer;
 
-        // Post-processing (bloom)
-        const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
+            // Post-processing (bloom) - skip on mobile for performance
+            if (!isMobile) {
+                const composer = new EffectComposer(renderer);
+                composer.addPass(new RenderPass(scene, camera));
 
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(width, height),
-            vizConfig.bloomStrength,
-            vizConfig.bloomRadius,
-            vizConfig.bloomThreshold,
-        );
-        composer.addPass(bloomPass);
-        composerRef.current = composer;
+                const bloomPass = new UnrealBloomPass(
+                    new THREE.Vector2(width, height),
+                    vizConfig.bloomStrength,
+                    vizConfig.bloomRadius,
+                    vizConfig.bloomThreshold,
+                );
+                composer.addPass(bloomPass);
+                composerRef.current = composer;
+            }
 
-        // Controls
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = vizConfig.rotationSpeed * 100;
-        controlsRef.current = controls;
+            // Controls
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = vizConfig.rotationSpeed * 100;
+            controlsRef.current = controls;
 
-        // Ambient light
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-        scene.add(ambientLight);
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
 
-        // Point light at center
-        const pointLight = new THREE.PointLight(
-            new THREE.Color(VUDO_COLORS.mycelium).getHex(),
-            2,
-            50,
-        );
-        pointLight.position.set(0, 0, 0);
-        scene.add(pointLight);
+            // Point light at center
+            const pointLight = new THREE.PointLight(
+                new THREE.Color(VUDO_COLORS.mycelium).getHex(),
+                2,
+                50,
+            );
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
 
-        // Background particles (substrate)
-        const particleGeometry = new THREE.BufferGeometry();
-        const particleCount = 500;
-        const positions = new Float32Array(particleCount * 3);
+            // Background particles (substrate) - fewer on mobile
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = isMobile ? 100 : 500;
+            const positions = new Float32Array(particleCount * 3);
 
-        for (let i = 0; i < particleCount; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * 30;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 30;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+            }
+
+            particleGeometry.setAttribute(
+                "position",
+                new THREE.BufferAttribute(positions, 3),
+            );
+
+            const particleMaterial = new THREE.PointsMaterial({
+                color: new THREE.Color(VUDO_COLORS.inactive),
+                size: 0.05,
+                transparent: true,
+                opacity: 0.5,
+            });
+
+            const particles = new THREE.Points(
+                particleGeometry,
+                particleMaterial,
+            );
+            scene.add(particles);
+
+            // Handle resize
+            const handleResize = () => {
+                if (!container || !camera || !renderer) return;
+
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize(newWidth, newHeight);
+                if (composerRef.current) {
+                    composerRef.current.setSize(newWidth, newHeight);
+                }
+            };
+
+            window.addEventListener("resize", handleResize);
+
+            return () => {
+                window.removeEventListener("resize", handleResize);
+                if (container.contains(renderer.domElement)) {
+                    container.removeChild(renderer.domElement);
+                }
+                renderer.dispose();
+            };
+        } catch (error) {
+            console.error("Failed to initialize Three.js:", error);
+            setWebGLError("Failed to initialize 3D visualization");
+            return;
         }
-
-        particleGeometry.setAttribute(
-            "position",
-            new THREE.BufferAttribute(positions, 3),
-        );
-
-        const particleMaterial = new THREE.PointsMaterial({
-            color: new THREE.Color(VUDO_COLORS.inactive),
-            size: 0.05,
-            transparent: true,
-            opacity: 0.5,
-        });
-
-        const particles = new THREE.Points(particleGeometry, particleMaterial);
-        scene.add(particles);
-
-        // Handle resize
-        const handleResize = () => {
-            if (!container || !camera || !renderer || !composer) return;
-
-            const newWidth = container.clientWidth;
-            const newHeight = container.clientHeight;
-
-            camera.aspect = newWidth / newHeight;
-            camera.updateProjectionMatrix();
-
-            renderer.setSize(newWidth, newHeight);
-            composer.setSize(newWidth, newHeight);
-        };
-
-        window.addEventListener("resize", handleResize);
-
-        return () => {
-            window.removeEventListener("resize", handleResize);
-            container.removeChild(renderer.domElement);
-            renderer.dispose();
-        };
-    }, [vizConfig]);
+    }, [vizConfig, isMobile]);
 
     // ─────────────────────────────────────────────────────────────────────────
     // NODE & TUBE CREATION
@@ -630,8 +682,15 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
 
             timeRef.current += 0.016;
 
-            if (composer) {
-                composer.render();
+            // Render - use composer if available (desktop), otherwise direct render (mobile)
+            if (composerRef.current) {
+                composerRef.current.render();
+            } else if (
+                rendererRef.current &&
+                sceneRef.current &&
+                cameraRef.current
+            ) {
+                rendererRef.current.render(sceneRef.current, cameraRef.current);
             }
         };
 
@@ -723,6 +782,24 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
     // ─────────────────────────────────────────────────────────────────────────
     // RENDER
     // ─────────────────────────────────────────────────────────────────────────
+
+    // Show fallback if WebGL is not available
+    if (webGLError) {
+        return (
+            <div className={`physarum-demo ${className}`}>
+                <div className="physarum-fallback">
+                    <div className="fallback-content">
+                        <span className="fallback-icon">◈</span>
+                        <h3>Physarum Network</h3>
+                        <p>3D visualization requires WebGL support.</p>
+                        <p className="fallback-hint">
+                            Try viewing on a desktop browser.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`physarum-demo ${className}`}>
