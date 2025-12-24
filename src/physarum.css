@@ -1,0 +1,787 @@
+/**
+ * VUDO OS - Physarum Demo Styles
+ *
+ * Mystical, organic aesthetic with bioluminescent glows
+ * and dark substrate backgrounds.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS VARIABLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* Core palette - Dark mode */
+    --vudo-void: #0a0a0f;
+    --vudo-substrate: #1a1a2e;
+    --vudo-mycelium: #00ff88;
+    --vudo-cytoplasm: #ffd700;
+    --vudo-inactive: #2d2d44;
+
+    /* Resource colors */
+    --vudo-compute: #ff6b6b;
+    --vudo-storage: #4ecdc4;
+    --vudo-bandwidth: #a855f7;
+
+    /* UI colors - Dark mode */
+    --vudo-text: #ffffff;
+    --vudo-text-dim: rgba(255, 255, 255, 0.6);
+    --vudo-border: rgba(255, 255, 255, 0.1);
+    --vudo-glow: rgba(127, 219, 202, 0.3);
+    --vudo-surface: #12121a;
+
+    /* Typography - Match site fonts */
+    --font-display: "Space Grotesk", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-body: "Inter", system-ui, sans-serif;
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+}
+
+/* Light mode overrides for Physarum components */
+.light {
+    --vudo-void: #f8fafc;
+    --vudo-substrate: #e2e8f0;
+    --vudo-mycelium: #047857;
+    --vudo-cytoplasm: #d97706;
+    --vudo-inactive: #cbd5e1;
+
+    --vudo-compute: #dc2626;
+    --vudo-storage: #0d9488;
+    --vudo-bandwidth: #7c3aed;
+
+    --vudo-text: #0f172a;
+    --vudo-text-dim: rgba(15, 23, 42, 0.7);
+    --vudo-border: rgba(15, 23, 42, 0.15);
+    --vudo-glow: rgba(4, 120, 87, 0.2);
+    --vudo-surface: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTAINER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-demo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 700px;
+    background: var(--vudo-void);
+    border-radius: 12px;
+    overflow: clip;
+    font-family: var(--font-body);
+    color: var(--vudo-text);
+    display: flex;
+    flex-direction: column;
+}
+
+.physarum-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTROLS PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-controls {
+    position: absolute;
+    top: var(--space-lg);
+    left: var(--space-lg);
+    z-index: 10;
+
+    background: rgba(26, 26, 46, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--vudo-border);
+    border-radius: 12px;
+    padding: var(--space-lg);
+
+    min-width: 220px;
+
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        0 0 40px var(--vudo-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.controls-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 300;
+    margin: 0 0 var(--space-lg) 0;
+    color: var(--vudo-mycelium);
+    letter-spacing: 0.02em;
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.controls-title .glyph {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.control-group {
+    margin-bottom: var(--space-md);
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--vudo-text-dim);
+    margin-bottom: var(--space-sm);
+}
+
+/* Scenario Buttons */
+.scenario-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+
+.scenario-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: var(--space-xs) var(--space-sm);
+
+    background: rgba(45, 45, 68, 0.6);
+    border: 1px solid var(--vudo-border);
+    border-radius: 6px;
+    color: var(--vudo-text-dim);
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scenario-btn:hover {
+    background: rgba(127, 219, 202, 0.1);
+    border-color: var(--vudo-mycelium);
+    color: var(--vudo-text);
+}
+
+.scenario-btn.active {
+    background: rgba(127, 219, 202, 0.2);
+    border-color: var(--vudo-mycelium);
+    color: var(--vudo-mycelium);
+    box-shadow: 0 0 12px var(--vudo-glow);
+}
+
+/* Simulation Controls */
+.sim-controls {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.sim-btn {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: var(--space-sm) var(--space-md);
+
+    background: rgba(45, 45, 68, 0.6);
+    border: 1px solid var(--vudo-border);
+    border-radius: 6px;
+    color: var(--vudo-text);
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sim-btn:hover {
+    background: rgba(127, 219, 202, 0.1);
+    border-color: var(--vudo-mycelium);
+}
+
+.sim-btn.active {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: var(--vudo-cytoplasm);
+    color: var(--vudo-cytoplasm);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   METRICS PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-metrics {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    z-index: 10;
+
+    background: rgba(26, 26, 46, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--vudo-border);
+    border-radius: 12px;
+    padding: var(--space-md) var(--space-lg);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--vudo-text-dim);
+}
+
+.metric-value {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--vudo-mycelium);
+    font-weight: 400;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INFO OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+
+    background: linear-gradient(
+        to top,
+        rgba(10, 10, 15, 1) 0%,
+        rgba(10, 10, 15, 0.95) 60%,
+        rgba(10, 10, 15, 0.7) 85%,
+        transparent 100%
+    );
+    padding: var(--space-xl) var(--space-lg) var(--space-lg);
+
+    text-align: center;
+    border-radius: 0 0 12px 12px;
+}
+
+.physarum-info p {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 0.9rem;
+    color: var(--vudo-text-dim);
+    line-height: 1.5;
+}
+
+.physarum-info p strong {
+    color: var(--vudo-mycelium);
+    font-weight: 400;
+}
+
+.physarum-info .tagline {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--vudo-cytoplasm);
+    margin-top: var(--space-md);
+    opacity: 0.9;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .physarum-controls {
+        top: var(--space-md);
+        left: var(--space-md);
+        right: var(--space-md);
+        min-width: auto;
+    }
+
+    .physarum-metrics {
+        top: auto;
+        bottom: 120px;
+        left: var(--space-md);
+        right: var(--space-md);
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .metric {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    .physarum-info {
+        padding-bottom: var(--space-lg);
+    }
+
+    .physarum-info p {
+        font-size: 0.8rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes pulse-glow {
+    0%,
+    100% {
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.4),
+            0 0 20px var(--vudo-glow);
+    }
+    50% {
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.4),
+            0 0 40px var(--vudo-glow);
+    }
+}
+
+.physarum-controls {
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NODE LABELS (if enabled)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.node-label {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--vudo-mycelium);
+    text-shadow: 0 0 8px rgba(127, 219, 202, 0.5);
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOADING STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--vudo-border);
+    border-top-color: var(--vudo-mycelium);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--vudo-text-dim);
+    letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHYSARUM SECTION STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.physarum-section {
+    padding: var(--space-xl) var(--space-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.physarum-section .section-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.physarum-section .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--glow-green, var(--vudo-mycelium));
+    display: block;
+    margin-bottom: var(--space-sm);
+}
+
+.physarum-section .section-title {
+    font-family: var(--font-body);
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--text-primary, var(--vudo-text));
+    margin: 0 0 var(--space-md) 0;
+    letter-spacing: -0.01em;
+}
+
+.physarum-section .section-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary, var(--vudo-text-dim));
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.physarum-section .demo-container {
+    height: 700px;
+    margin-bottom: var(--space-xl);
+    border-radius: 12px;
+    overflow: visible;
+    border: 1px solid var(--vudo-border);
+}
+
+.physarum-section .demo-instance {
+    width: 100%;
+    height: 100%;
+}
+
+.physarum-section .explanation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.physarum-section .explanation-card {
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid var(--vudo-border);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    text-align: center;
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.physarum-section .explanation-card:hover {
+    border-color: var(--vudo-mycelium);
+    box-shadow: 0 0 20px var(--vudo-glow);
+}
+
+.physarum-section .card-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-md);
+}
+
+.physarum-section .explanation-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--vudo-mycelium);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.physarum-section .explanation-card p {
+    font-size: 0.9rem;
+    color: var(--vudo-text-dim);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.physarum-section .vudo-connection {
+    background: linear-gradient(
+        135deg,
+        rgba(127, 219, 202, 0.1),
+        rgba(168, 85, 247, 0.1)
+    );
+    border: 1px solid var(--vudo-border);
+    border-radius: 12px;
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+}
+
+.physarum-section .connection-content h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--vudo-text);
+    margin: 0 0 var(--space-lg) 0;
+    text-align: center;
+}
+
+.physarum-section .connection-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.physarum-section .connection-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.physarum-section .connection-label {
+    color: var(--vudo-mycelium);
+    font-weight: 400;
+}
+
+.physarum-section .connection-arrow {
+    color: var(--vudo-text-dim);
+}
+
+.physarum-section .connection-value {
+    color: var(--vudo-text);
+}
+
+.physarum-section .connection-quote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--vudo-cytoplasm);
+    text-align: center;
+    margin: 0;
+}
+
+.physarum-section .tech-specs {
+    background: rgba(26, 26, 46, 0.4);
+    border: 1px solid var(--vudo-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.physarum-section .tech-specs summary {
+    padding: var(--space-md) var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--vudo-text-dim);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.physarum-section .tech-specs summary:hover {
+    color: var(--vudo-mycelium);
+}
+
+.physarum-section .specs-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    padding: 0 var(--space-lg) var(--space-lg);
+}
+
+.physarum-section .spec-group h4 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--vudo-mycelium);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.physarum-section .spec-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.physarum-section .spec-group li {
+    font-size: 0.8rem;
+    color: var(--vudo-text-dim);
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid rgba(61, 61, 92, 0.3);
+}
+
+.physarum-section .spec-group li:last-child {
+    border-bottom: none;
+}
+
+@media (max-width: 768px) {
+    .physarum-section {
+        padding: var(--space-lg) var(--space-md);
+    }
+
+    .physarum-section .section-title {
+        font-size: 1.75rem;
+    }
+
+    .physarum-section .demo-container {
+        height: 550px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOOLTIP
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.node-tooltip {
+    position: absolute;
+    z-index: 100;
+
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid var(--vudo-mycelium);
+    border-radius: 8px;
+    padding: var(--space-sm) var(--space-md);
+
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--vudo-text);
+
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        0 0 20px var(--vudo-glow);
+
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+}
+
+.node-tooltip::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: var(--vudo-mycelium) transparent transparent;
+}
+
+.tooltip-title {
+    font-weight: 400;
+    color: var(--vudo-mycelium);
+    margin-bottom: var(--space-xs);
+}
+
+.tooltip-stat {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    color: var(--vudo-text-dim);
+}
+
+.tooltip-stat-value {
+    color: var(--vudo-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.light .physarum-demo {
+    background: var(--vudo-void);
+    border: 1px solid var(--vudo-border);
+}
+
+.light .physarum-controls {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--vudo-border);
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.1),
+        0 0 40px var(--vudo-glow);
+}
+
+.light .physarum-metrics {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--vudo-border);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+.light .scenario-btn {
+    background: rgba(15, 23, 42, 0.05);
+    border-color: var(--vudo-border);
+    color: var(--vudo-text-dim);
+}
+
+.light .scenario-btn:hover {
+    background: rgba(4, 120, 87, 0.1);
+    border-color: var(--vudo-mycelium);
+    color: var(--vudo-text);
+}
+
+.light .scenario-btn.active {
+    background: rgba(4, 120, 87, 0.15);
+    border-color: var(--vudo-mycelium);
+    color: var(--vudo-mycelium);
+}
+
+.light .sim-btn {
+    background: rgba(15, 23, 42, 0.05);
+    border-color: var(--vudo-border);
+    color: var(--vudo-text);
+}
+
+.light .sim-btn:hover {
+    background: rgba(4, 120, 87, 0.1);
+    border-color: var(--vudo-mycelium);
+}
+
+.light .sim-btn.active {
+    background: rgba(217, 119, 6, 0.15);
+    border-color: var(--vudo-cytoplasm);
+    color: var(--vudo-cytoplasm);
+}
+
+.light .physarum-info {
+    background: linear-gradient(
+        to top,
+        rgba(248, 250, 252, 1) 0%,
+        rgba(248, 250, 252, 0.95) 60%,
+        rgba(248, 250, 252, 0.7) 85%,
+        transparent 100%
+    );
+}
+
+.light .physarum-section .explanation-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--vudo-border);
+}
+
+.light .physarum-section .explanation-card:hover {
+    border-color: var(--vudo-mycelium);
+    box-shadow: 0 0 20px var(--vudo-glow);
+}
+
+.light .physarum-section .vudo-connection {
+    background: linear-gradient(
+        135deg,
+        rgba(4, 120, 87, 0.08),
+        rgba(124, 58, 237, 0.08)
+    );
+    border-color: var(--vudo-border);
+}
+
+.light .physarum-section .tech-specs {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: var(--vudo-border);
+}
+
+.light .node-tooltip {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.15),
+        0 0 20px var(--vudo-glow);
+}
