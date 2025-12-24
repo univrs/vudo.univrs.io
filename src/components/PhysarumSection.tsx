@@ -51,21 +51,19 @@ export const PhysarumSection: React.FC = () => {
                 </p>
             </div>
 
-            {/* Demo Container */}
-            <div className="demo-container">
-                <PhysarumDemo
-                    className="demo-instance"
-                    config={{
-                        scenario: "migration",
-                        nodeCount: 7,
-                        initialConnectivity: 0.5,
-                        dynamicGradients: true,
-                        showLabels: true,
-                        showMetrics: true,
-                    }}
-                    onMetricsUpdate={handleMetricsUpdate}
-                />
-            </div>
+            {/* Demo Container - wrapper is inside PhysarumDemo so it can return null cleanly */}
+            <PhysarumDemo
+                className="demo-instance"
+                config={{
+                    scenario: "migration",
+                    nodeCount: 7,
+                    initialConnectivity: 0.5,
+                    dynamicGradients: true,
+                    showLabels: true,
+                    showMetrics: true,
+                }}
+                onMetricsUpdate={handleMetricsUpdate}
+            />
 
             {/* Explanation Cards */}
             <div className="explanation-grid">

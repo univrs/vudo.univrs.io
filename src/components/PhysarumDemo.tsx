@@ -789,106 +789,108 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
     }
 
     return (
-        <div className={`physarum-demo ${className}`}>
-            <div ref={containerRef} className="physarum-canvas" />
+        <div className="demo-container">
+            <div className={`physarum-demo ${className}`}>
+                <div ref={containerRef} className="physarum-canvas" />
 
-            {/* Controls Panel */}
-            <div className="physarum-controls">
-                <h3 className="controls-title">
-                    <span className="glyph">◈</span> Physarum Network
-                </h3>
+                {/* Controls Panel */}
+                <div className="physarum-controls">
+                    <h3 className="controls-title">
+                        <span className="glyph">◈</span> Physarum Network
+                    </h3>
 
-                <div className="control-group">
-                    <label>Scenario</label>
-                    <div className="scenario-buttons">
-                        {(
-                            [
-                                "balanced",
-                                "hotspot",
-                                "migration",
-                                "failure",
-                                "growth",
-                            ] as DemoScenario[]
-                        ).map((s) => (
+                    <div className="control-group">
+                        <label>Scenario</label>
+                        <div className="scenario-buttons">
+                            {(
+                                [
+                                    "balanced",
+                                    "hotspot",
+                                    "migration",
+                                    "failure",
+                                    "growth",
+                                ] as DemoScenario[]
+                            ).map((s) => (
+                                <button
+                                    key={s}
+                                    className={`scenario-btn ${scenario === s ? "active" : ""}`}
+                                    onClick={() => handleScenarioChange(s)}
+                                >
+                                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="control-group">
+                        <label>Simulation</label>
+                        <div className="sim-controls">
                             <button
-                                key={s}
-                                className={`scenario-btn ${scenario === s ? "active" : ""}`}
-                                onClick={() => handleScenarioChange(s)}
+                                className={`sim-btn ${isRunning ? "active" : ""}`}
+                                onClick={() => setIsRunning(!isRunning)}
                             >
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                                {isRunning ? "⏸ Pause" : "▶ Play"}
                             </button>
-                        ))}
+                            <button className="sim-btn" onClick={handleReset}>
+                                ↺ Reset
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div className="control-group">
-                    <label>Simulation</label>
-                    <div className="sim-controls">
-                        <button
-                            className={`sim-btn ${isRunning ? "active" : ""}`}
-                            onClick={() => setIsRunning(!isRunning)}
-                        >
-                            {isRunning ? "⏸ Pause" : "▶ Play"}
-                        </button>
-                        <button className="sim-btn" onClick={handleReset}>
-                            ↺ Reset
-                        </button>
+                {/* Metrics Panel */}
+                {config.showMetrics && metrics && (
+                    <div className="physarum-metrics">
+                        <div className="metric">
+                            <span className="metric-label">Tubes</span>
+                            <span className="metric-value">
+                                {metrics.tubeCount}
+                            </span>
+                        </div>
+                        <div className="metric">
+                            <span className="metric-label">Active Nodes</span>
+                            <span className="metric-value">
+                                {metrics.activeNodeCount}/{metrics.nodeCount}
+                            </span>
+                        </div>
+                        <div className="metric">
+                            <span className="metric-label">Total Flow</span>
+                            <span className="metric-value">
+                                {metrics.totalFlow.toFixed(3)}
+                            </span>
+                        </div>
+                        <div className="metric">
+                            <span className="metric-label">Efficiency</span>
+                            <span className="metric-value">
+                                {(metrics.networkEfficiency * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div className="metric">
+                            <span className="metric-label">Avg Gradient</span>
+                            <span className="metric-value">
+                                {(metrics.avgGradient * 100).toFixed(0)}%
+                            </span>
+                        </div>
                     </div>
-                </div>
-            </div>
+                )}
 
-            {/* Metrics Panel */}
-            {config.showMetrics && metrics && (
-                <div className="physarum-metrics">
-                    <div className="metric">
-                        <span className="metric-label">Tubes</span>
-                        <span className="metric-value">
-                            {metrics.tubeCount}
-                        </span>
-                    </div>
-                    <div className="metric">
-                        <span className="metric-label">Active Nodes</span>
-                        <span className="metric-value">
-                            {metrics.activeNodeCount}/{metrics.nodeCount}
-                        </span>
-                    </div>
-                    <div className="metric">
-                        <span className="metric-label">Total Flow</span>
-                        <span className="metric-value">
-                            {metrics.totalFlow.toFixed(3)}
-                        </span>
-                    </div>
-                    <div className="metric">
-                        <span className="metric-label">Efficiency</span>
-                        <span className="metric-value">
-                            {(metrics.networkEfficiency * 100).toFixed(1)}%
-                        </span>
-                    </div>
-                    <div className="metric">
-                        <span className="metric-label">Avg Gradient</span>
-                        <span className="metric-value">
-                            {(metrics.avgGradient * 100).toFixed(0)}%
-                        </span>
-                    </div>
+                {/* Info Overlay */}
+                <div className="physarum-info">
+                    <p>
+                        <strong>Physarum polycephalum</strong> — The slime mold
+                        that computes.
+                    </p>
+                    <p>
+                        Watch the network self-optimize: tubes grow toward
+                        resources, thicken with flow, and prune when unused.
+                    </p>
+                    <p className="tagline">
+                        <em>
+                            "The system that knows what it is, becomes what it
+                            knows."
+                        </em>
+                    </p>
                 </div>
-            )}
-
-            {/* Info Overlay */}
-            <div className="physarum-info">
-                <p>
-                    <strong>Physarum polycephalum</strong> — The slime mold that
-                    computes.
-                </p>
-                <p>
-                    Watch the network self-optimize: tubes grow toward
-                    resources, thicken with flow, and prune when unused.
-                </p>
-                <p className="tagline">
-                    <em>
-                        "The system that knows what it is, becomes what it
-                        knows."
-                    </em>
-                </p>
             </div>
         </div>
     );
