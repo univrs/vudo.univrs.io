@@ -11,8 +11,8 @@
  *   <PhysarumSection />
  */
 
-import React, { useState, useCallback } from "react";
-import { PhysarumDemo } from "./PhysarumDemo";
+import React, { useState, useCallback, useMemo } from "react";
+import { PhysarumDemo, isWebGLAvailable } from "./PhysarumDemo";
 import type { NetworkMetrics } from "../PhysarumEngine";
 import "../physarum.css";
 
@@ -23,9 +23,20 @@ import "../physarum.css";
 export const PhysarumSection: React.FC = () => {
     const [metrics, setMetrics] = useState<NetworkMetrics | null>(null);
 
+    // Check WebGL availability once on mount
+    const hasWebGL = useMemo(() => {
+        if (typeof window === "undefined") return false;
+        return isWebGLAvailable();
+    }, []);
+
     const handleMetricsUpdate = useCallback((newMetrics: NetworkMetrics) => {
         setMetrics(newMetrics);
     }, []);
+
+    // Don't render the section at all if WebGL is not available
+    if (!hasWebGL) {
+        return null;
+    }
 
     return (
         <section className="physarum-section" id="physarum">

@@ -48,7 +48,7 @@ import {
 // WEBGL DETECTION
 // ═══════════════════════════════════════════════════════════════════════════
 
-function isWebGLAvailable(): boolean {
+export function isWebGLAvailable(): boolean {
     try {
         const canvas = document.createElement("canvas");
         return !!(
@@ -61,7 +61,7 @@ function isWebGLAvailable(): boolean {
     }
 }
 
-function isMobileDevice(): boolean {
+export function isMobileDevice(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
     );
@@ -783,22 +783,9 @@ export const PhysarumDemo: React.FC<PhysarumDemoProps> = ({
     // RENDER
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Show fallback if WebGL is not available
+    // Return null if WebGL is not available - let parent handle the fallback
     if (webGLError) {
-        return (
-            <div className={`physarum-demo ${className}`}>
-                <div className="physarum-fallback">
-                    <div className="fallback-content">
-                        <span className="fallback-icon">◈</span>
-                        <h3>Physarum Network</h3>
-                        <p>3D visualization requires WebGL support.</p>
-                        <p className="fallback-hint">
-                            Try viewing on a desktop browser.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
+        return null;
     }
 
     return (
