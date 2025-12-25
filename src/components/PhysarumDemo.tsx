@@ -4,7 +4,7 @@
  * Three.js-powered 3D visualization of the Physarum decision network.
  * Renders the slime mold as glowing nodes connected by pulsing tubes.
  *
- * "The network IS Bondye."
+ * "The network IS Bondieu."
  */
 
 import React, {

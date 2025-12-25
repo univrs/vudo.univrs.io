@@ -142,7 +142,7 @@ export const PhysarumSection: React.FC = () => {
                             </span>
                         </div>
                     </div>
-                    <p className="connection-quote">"The network IS Bondye."</p>
+                    <p className="connection-quote">"The network IS Bondieu."</p>
                 </div>
             </div>
 
