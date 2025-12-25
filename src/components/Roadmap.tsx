@@ -27,25 +27,25 @@ const roadmapData: YearData[] = [
                 quarter: "Q1",
                 title: "DOL Turing Extensions",
                 description: "Types, control flow, functional composition",
-                status: "current",
+                status: "complete",
             },
             {
                 quarter: "Q2",
                 title: "Meta-Programming",
                 description: "Quote, eval, macros, reflection",
-                status: "future",
+                status: "complete",
             },
             {
                 quarter: "Q3",
                 title: "LLVM MCP Server",
                 description: "AI-driven compilation pipeline",
-                status: "future",
+                status: "complete",
             },
             {
                 quarter: "Q4",
                 title: "Self-Hosting",
                 description: "DOL compiles DOL to WASM",
-                status: "future",
+                status: "current",
             },
         ],
     },
@@ -125,6 +125,8 @@ function MilestoneCard({
     index: number;
 }) {
     const isCurrent = milestone.status === "current";
+    const isComplete = milestone.status === "complete";
+    const isActive = isCurrent || isComplete;
 
     return (
         <motion.div
@@ -139,10 +141,15 @@ function MilestoneCard({
             <div
                 className="absolute left-0 top-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center"
                 style={{
-                    borderColor: isCurrent ? color : "rgba(255,255,255,0.2)",
-                    backgroundColor: isCurrent ? color + "20" : "transparent",
+                    borderColor: isActive ? color : "rgba(255,255,255,0.2)",
+                    backgroundColor: isComplete ? color : isCurrent ? color + "20" : "transparent",
                 }}
             >
+                {isComplete && (
+                    <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                )}
                 {isCurrent && (
                     <motion.div
                         className="w-2 h-2 rounded-full"
@@ -153,12 +160,12 @@ function MilestoneCard({
                 )}
             </div>
 
-            <div className={isCurrent ? "opacity-100" : "opacity-60"}>
+            <div className={isActive ? "opacity-100" : "opacity-60"}>
                 <span
                     className="text-xs tracking-wider uppercase"
                     style={{ color }}
                 >
-                    {milestone.quarter}
+                    {milestone.quarter} {isComplete && "✓"}
                 </span>
                 <h4 className="text-lg text-white mt-1">{milestone.title}</h4>
                 <p className="text-sm text-white/50 mt-1">
