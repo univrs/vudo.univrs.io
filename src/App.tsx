@@ -39,6 +39,11 @@ function VeveDivider() {
 function VocabularySection() {
     const vocabulary = [
         {
+            term: "Bondieu",
+            meaning: "The collective creative network",
+            type: "mitan" as const,
+        },
+        {
             term: "Spirit",
             meaning: "Shareable .dol package",
             type: "spirit" as const,
@@ -49,11 +54,6 @@ function VocabularySection() {
             type: "seance" as const,
         },
         { term: "Loa", meaning: "Autonomous service", type: "loa" as const },
-        {
-            term: "Mycelium",
-            meaning: "P2P network fabric",
-            type: "mycelium" as const,
-        },
     ];
 
     return (
@@ -249,21 +249,26 @@ function Footer() {
     return (
         <footer className="relative py-8 md:py-12 px-4 md:px-6 border-t border-[var(--border-color)]">
             <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-                <div className="flex items-center gap-3">
-                    <VevePattern
-                        type="mitan"
-                        size={20}
-                        animated={false}
-                        strokeWidth={1}
-                        className="md:w-6 md:h-6"
-                    />
-                    <span className="text-[var(--text-muted)] text-sm">
-                        VUDO
-                    </span>
-                    <span className="text-[var(--text-muted)]/50">|</span>
-                    <span className="text-[var(--text-muted)] text-sm">
-                        Univrs.io
-                    </span>
+                <div className="flex flex-col items-center md:items-start gap-2">
+                    <div className="flex items-center gap-3">
+                        <VevePattern
+                            type="mitan"
+                            size={20}
+                            animated={false}
+                            strokeWidth={1}
+                            className="md:w-6 md:h-6"
+                        />
+                        <span className="text-[var(--text-muted)] text-sm">
+                            VUDO
+                        </span>
+                        <span className="text-[var(--text-muted)]/50">|</span>
+                        <span className="text-[var(--text-muted)] text-sm">
+                            Univrs.io
+                        </span>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)]/60 italic">
+                        1984: "The Network is the Computer" → 2024: "Le réseau est Bondieu"
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-6 text-sm text-[var(--text-muted)]">

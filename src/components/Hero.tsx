@@ -71,14 +71,21 @@ export function Hero() {
                     variants={fadeUpVariants}
                     className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-2 font-light"
                 >
-                    Systems that can become,
+                    Imagine. Summon. Create.
                 </motion.h2>
 
                 <motion.p
                     variants={fadeUpVariants}
-                    className="text-lg md:text-xl lg:text-2xl text-[#00ff88] mb-12 max-w-xl mx-auto font-light italic"
+                    className="text-lg md:text-xl lg:text-2xl text-[#00ff88] mb-4 max-w-xl mx-auto font-light italic"
                 >
-                    what you can imagine!
+                    Make the Univrs in your image.
+                </motion.p>
+
+                <motion.p
+                    variants={fadeUpVariants}
+                    className="text-base md:text-lg text-[#fbbf24]/80 mb-12 max-w-xl mx-auto font-light"
+                >
+                    Le réseau est Bondieu
                 </motion.p>
 
                 <motion.div
