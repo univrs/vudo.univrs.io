@@ -35,6 +35,7 @@ Thumbs.db
 .claude/
 .claude-flow/
 .hive-mind/
+.flows
 
 # Test coverage
 coverage/
@@ -45,3 +46,4 @@ coverage/
 # Temporary files
 tmp/
 temp/
+archives/
