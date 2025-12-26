@@ -44,8 +44,8 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q4",
                 title: "Self-Hosting",
-                description: "DOL compiles DOL to WASM",
-                status: "current",
+                description: "DOL v0.2.2 Bootstrap - DOL compiles DOL",
+                status: "complete",
             },
         ],
     },
@@ -59,7 +59,7 @@ const roadmapData: YearData[] = [
                 quarter: "Q1",
                 title: "VUDO VM",
                 description: "WebAssembly execution, sandboxing",
-                status: "future",
+                status: "current",
             },
             {
                 quarter: "Q2",
