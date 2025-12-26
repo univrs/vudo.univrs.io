@@ -114,7 +114,7 @@ export function Hero() {
                     </a>
 
                     <a
-                        href="https://github.com/univrs/metadol"
+                        href="https://github.com/univrs/dol"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-8 py-4 text-white/60 hover:text-white/90 transition-colors duration-300 tracking-wider uppercase text-sm"

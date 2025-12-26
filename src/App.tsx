@@ -193,7 +193,7 @@ function CTASection() {
                             Write your first Gene.
                         </p>
                         <a
-                            href="https://github.com/univrs/metadol"
+                            href="https://github.com/univrs/dol"
                             className="text-xs md:text-sm text-[#00ff88] hover:text-[#00ff88]/80"
                         >
                             Start Building →
