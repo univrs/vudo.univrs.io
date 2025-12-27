@@ -44,7 +44,7 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q4",
                 title: "Self-Hosting",
-                description: "DOL v0.2.2 Bootstrap - DOL compiles DOL",
+                description: "DOL v0.2.3 Stage2 - Full self-hosting: 1532 tests",
                 status: "complete",
             },
         ],
