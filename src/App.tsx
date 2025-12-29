@@ -7,6 +7,7 @@ import { Hero } from "./components/Hero";
 import { PhysarumSection } from "./components/PhysarumSection";
 import { DOLPlayground } from "./components/DOLPlayground";
 import { Roadmap } from "./components/Roadmap";
+import { MilestoneTracker } from "./components/MilestoneTracker";
 
 function LoadingScreen() {
     return (
@@ -313,6 +314,8 @@ function AppContent() {
                 <ManifestoSection />
                 <VeveDivider />
                 <Roadmap />
+                <VeveDivider />
+                <MilestoneTracker />
                 <VeveDivider />
                 <CTASection />
             </main>
