@@ -1,3 +1,9 @@
 name = "vudo-landing"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
+
+# Functions configuration
+# The functions directory is automatically detected by Cloudflare Pages
+# API routes:
+#   POST /api/compile - Compile DOL source code
+#   GET  /api/health  - Health check endpoint

@@ -10,11 +10,15 @@
     "deploy": "wrangler pages deploy dist"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@noble/ed25519": "^3.0.0",
     "@react-three/drei": "^9.88.0",
     "@react-three/fiber": "^8.15.0",
     "framer-motion": "^10.16.0",
+    "monaco-editor": "^0.55.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.11.0",
     "three": "^0.160.1"
   },
   "devDependencies": {

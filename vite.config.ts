@@ -6,8 +6,20 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      external: ['/wasm/dol_wasm.js'],
+    },
   },
   server: {
     port: 3000,
+  },
+  worker: {
+    format: 'es',
+    rollupOptions: {
+      external: ['/wasm/dol_wasm.js'],
+    },
+  },
+  optimizeDeps: {
+    exclude: ['@vudo/dol-wasm'],
   },
 });
