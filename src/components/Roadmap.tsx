@@ -43,8 +43,8 @@ const roadmapData: YearData[] = [
             },
             {
                 quarter: "Q4",
-                title: "HIR Complete",
-                description: "DOL v0.4.0 - HIR validation, codegen: 365 tests",
+                title: "WASM Pipeline",
+                description: "DOL v0.6.0 - HIR + MLIR + WASM compilation: 1,705 tests",
                 status: "complete",
             },
         ],
@@ -69,15 +69,15 @@ const roadmapData: YearData[] = [
             },
             {
                 quarter: "Q3",
-                title: "MLIR Dialect",
-                description: "DOL v0.5.0 - HIR → MLIR lowering",
+                title: "DOL → WASM Compiler",
+                description: "Full compilation pipeline: DOL → HIR → WASM",
                 status: "current",
             },
             {
                 quarter: "Q4",
-                title: "WASM Emission",
-                description: "MLIR → WASM binary generation for Spirits",
-                status: "future",
+                title: "ENR Economic Layer",
+                description: "Entropy-Nexus-Revival primitives for Spirit economics",
+                status: "current",
             },
         ],
     },
@@ -90,7 +90,7 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q1",
                 title: "Full Bootstrap",
-                description: "DOL v0.6.0 - DOL compiles DOL to WASM",
+                description: "DOL v0.7.0 - DOL compiles DOL to WASM (self-hosting complete)",
                 status: "future",
             },
             {
