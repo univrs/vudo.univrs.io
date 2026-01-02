@@ -29,6 +29,14 @@ interface ENRSubsystem {
     formula?: string;
 }
 
+// User/Adoption metrics - showing the gaps honestly
+interface AdoptionMetrics {
+    productionDeployments: number;
+    externalContributors: number;
+    githubStars: number;
+    npmDownloads: number;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════════════════════════
@@ -108,6 +116,15 @@ const enrSubsystems: ENRSubsystem[] = [
     { name: "Pricing", status: "pending", dolLines: 651, formula: "Fixed / Dynamic / Auction" },
 ];
 
+// Adoption metrics - the gaps we're showing honestly
+// "The dashboard shows 6/7 phases. The critique shows 0/1 users."
+const adoption: AdoptionMetrics = {
+    productionDeployments: 0,
+    externalContributors: 0,
+    githubStars: 0,
+    npmDownloads: 0,
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // STATUS INDICATOR
 // ═══════════════════════════════════════════════════════════════════════════
@@ -168,9 +185,9 @@ export function MilestoneTracker() {
                     </p>
                 </motion.div>
 
-                {/* Stats */}
+                {/* Builder Stats */}
                 <motion.div
-                    className="flex flex-wrap justify-center gap-6 md:gap-12 mb-10 md:mb-12"
+                    className="flex flex-wrap justify-center gap-6 md:gap-12 mb-6"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
@@ -198,6 +215,40 @@ export function MilestoneTracker() {
                         </div>
                         <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
                             DOL Lines
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* User/Adoption Stats - showing the gaps honestly */}
+                <motion.div
+                    className="flex flex-wrap justify-center gap-6 md:gap-12 mb-10 md:mb-12 py-4 border-t border-b border-white/10"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 }}
+                >
+                    <div className="text-center">
+                        <div className="text-2xl md:text-3xl font-light text-white/40">
+                            {adoption.productionDeployments}/1
+                        </div>
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                            Production
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl md:text-3xl font-light text-white/40">
+                            {adoption.externalContributors}
+                        </div>
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                            External Contributors
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl md:text-3xl font-light text-white/40">
+                            {adoption.githubStars}
+                        </div>
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                            GitHub Stars
                         </div>
                     </div>
                 </motion.div>
