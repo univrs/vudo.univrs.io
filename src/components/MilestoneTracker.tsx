@@ -52,7 +52,7 @@ const phases: Phase[] = [
     },
     {
         id: "phase2a",
-        name: "Phase 2a: HIR v0.4.0",
+        name: "Phase 2a: HIR v0.6.0",
         status: "complete",
         tests: 466,
         description: "High-level Intermediate Representation",
@@ -101,7 +101,7 @@ const phases: Phase[] = [
 ];
 
 const repositories: Repository[] = [
-    { name: "univrs-dol", url: "https://github.com/univrs/univrs-dol", status: "stable", tests: 454 },
+    { name: "univrs-dol", url: "https://github.com/univrs/univrs-dol", status: "stable", tests: 1705 },
     { name: "univrs-enr", url: "https://github.com/univrs/univrs-enr", status: "active", tests: 0 },
     { name: "univrs-network", url: "https://github.com/univrs/univrs-network", status: "pending", tests: 0 },
     { name: "univrs-vudo", url: "https://github.com/univrs/univrs-vudo", status: "stable", tests: 402 },
