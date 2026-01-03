@@ -29,8 +29,8 @@ export function CompileButton({
         transition-all duration-300 min-w-[140px]
         ${
           isDisabled
-            ? "bg-[#00ff88]/10 text-[#00ff88]/40 border border-[#00ff88]/20 cursor-not-allowed"
-            : "bg-[#00ff88]/20 text-[#00ff88] border border-[#00ff88]/50 hover:bg-[#00ff88]/30 hover:border-[#00ff88]/70 hover:shadow-[0_0_20px_rgba(0,255,136,0.3)]"
+            ? "bg-[var(--glow-green)]/10 text-[var(--glow-green)]/40 border border-[var(--glow-green)]/20 cursor-not-allowed"
+            : "bg-[var(--glow-green)]/20 text-[var(--glow-green)] border border-[var(--glow-green)]/50 hover:bg-[var(--glow-green)]/30 hover:border-[var(--glow-green)]/70"
         }
       `}
       whileHover={!isDisabled ? { scale: 1.02 } : undefined}
@@ -39,7 +39,7 @@ export function CompileButton({
       {/* Glow effect */}
       {!isDisabled && (
         <motion.div
-          className="absolute -inset-1 bg-[#00ff88]/10 blur-md -z-10 rounded-sm"
+          className="absolute -inset-1 bg-[var(--glow-green)]/10 blur-md -z-10 rounded-sm"
           animate={{
             opacity: [0.5, 0.8, 0.5],
           }}
@@ -55,7 +55,7 @@ export function CompileButton({
         {isCompiling ? (
           <>
             <motion.div
-              className="w-4 h-4 border-2 border-[#00ff88]/30 border-t-[#00ff88] rounded-full"
+              className="w-4 h-4 border-2 border-[var(--glow-green)]/30 border-t-[var(--glow-green)] rounded-full"
               animate={{ rotate: 360 }}
               transition={{
                 duration: 0.8,

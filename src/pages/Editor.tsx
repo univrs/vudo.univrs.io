@@ -6,11 +6,24 @@ import { useCompiler, CompileStatus as HookCompileStatus } from '../hooks/useCom
 import { useIdentity } from '../hooks/useIdentity';
 import { simulateExecution, ExecutionResult } from '../lib/sandbox';
 
-const DEFAULT_CODE = `// My First Spirit
-spirit HelloWorld {
-  pub fn main() -> String {
-    "Hello from the Mycelium! 🍄"
+const DEFAULT_CODE = `// Define a Gene (like a class/struct with methods)
+gene Counter {
+  has value: Int
+
+  fun get() -> Int {
+    return self.value
   }
+
+  fun increment() {
+    self.value = self.value + 1
+  }
+}
+
+// Instantiate and use the Gene
+fun main() {
+  let c = Counter { value: 0 }
+  c.increment()
+  println(c.get())
 }`;
 
 type CompileStatus = 'ready' | 'compiling' | 'success' | 'error';
@@ -57,15 +70,22 @@ export function Editor() {
     // Check if this is an AST result from the WASM compiler
     if (result.success !== undefined) {
       if (result.success) {
-        lines.push('✓ Spirit compiled successfully');
+        lines.push('✓ Compiled successfully');
         lines.push('');
 
         // Show metadata
         if (result.metadata) {
           lines.push(`→ Version: DOL ${result.metadata.version || '0.1.0'}`);
           lines.push(`→ Source lines: ${result.metadata.source_lines || 0}`);
-          lines.push(`→ Spirits: ${result.metadata.spirit_count || 0}`);
-          lines.push(`→ Functions: ${result.metadata.function_count || 0}`);
+          if (result.metadata.spirit_count > 0) {
+            lines.push(`→ Spirits: ${result.metadata.spirit_count}`);
+          }
+          if (result.metadata.gene_count > 0) {
+            lines.push(`→ Genes: ${result.metadata.gene_count}`);
+          }
+          if (result.metadata.function_count > 0) {
+            lines.push(`→ Functions: ${result.metadata.function_count}`);
+          }
         }
 
         // Show AST summary
@@ -80,7 +100,7 @@ export function Editor() {
                   const child = node.body[i];
                   const prefix = i === node.body.length - 1 ? '│  └─' : '│  ├─';
                   if (child.type === 'Function') {
-                    lines.push(`${prefix} fn ${child.name}()`);
+                    lines.push(`${prefix} fun ${child.name}()`);
                   } else if (child.type === 'State') {
                     lines.push(`${prefix} state ${child.name}`);
                   } else if (child.type === 'Comment') {
@@ -88,8 +108,21 @@ export function Editor() {
                   }
                 }
               }
+            } else if (node.type === 'Gene') {
+              lines.push(`├─ gene ${node.name}`);
+              if (node.body) {
+                for (let i = 0; i < node.body.length; i++) {
+                  const child = node.body[i];
+                  const prefix = i === node.body.length - 1 ? '│  └─' : '│  ├─';
+                  if (child.type === 'Function') {
+                    lines.push(`${prefix} fun ${child.name}()`);
+                  } else if (child.type === 'Field') {
+                    lines.push(`${prefix} has ${child.name}`);
+                  }
+                }
+              }
             } else if (node.type === 'Function') {
-              lines.push(`├─ fn ${node.name}()`);
+              lines.push(`├─ fun ${node.name}()`);
             }
           }
         }
@@ -162,19 +195,19 @@ export function Editor() {
       {/* Main editor area */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left: Code Editor */}
-        <div className="flex-1 lg:w-1/2 border-b lg:border-b-0 lg:border-r border-white/10">
+        <div className="flex-1 lg:w-1/2 border-b lg:border-b-0 lg:border-r border-[var(--border-color)]">
           <div className="h-full flex flex-col">
-            <div className="px-4 py-2 bg-white/5 border-b border-white/10 flex items-center justify-between">
+            <div className="px-4 py-2 bg-[var(--border-color)] border-b border-[var(--border-color)] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/50" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                 <div className="w-3 h-3 rounded-full bg-green-500/50" />
-                <span className="ml-2 text-xs text-white/40 font-mono">spirit.dol</span>
+                <span className="ml-2 text-xs text-[var(--text-muted)] font-mono">gene.dol</span>
               </div>
               {nodeId && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/30 font-mono">node:</span>
-                  <span className="text-xs text-[#00ff88]/60 font-mono" title={nodeId}>
+                  <span className="text-xs text-[var(--text-muted)] font-mono">node:</span>
+                  <span className="text-xs text-[var(--glow-green)]/60 font-mono" title={nodeId}>
                     {nodeId.slice(0, 8)}...{nodeId.slice(-4)}
                   </span>
                 </div>

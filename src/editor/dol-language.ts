@@ -103,11 +103,11 @@ const dolKeywords = {
     'manifest', 'incarnate', 'transcend', 'from', 'as', 'pub', 'use',
   ],
 
-  // Types & Data (14 keywords)
+  // Types & Data (15 keywords)
   types: [
     'gene', 'trait', 'impl', 'self', 'Self', 'where', 'for',
     'enum', 'struct', 'union', 'type', 'const', 'static', 'mut',
-    'let', 'ref', 'move',
+    'let', 'ref', 'move', 'has',
   ],
 
   // Control Flow (13 keywords)
@@ -118,7 +118,7 @@ const dolKeywords = {
 
   // Functions (4 keywords)
   functions: [
-    'fn', 'proc', 'ritual', 'ceremony',
+    'fun', 'proc', 'ritual', 'ceremony',
   ],
 
   // Network & Resources (9 keywords)

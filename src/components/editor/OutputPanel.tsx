@@ -50,7 +50,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
       // Checkmark lines
       if (line.includes("\u2713") || line.startsWith("\u2713")) {
         return (
-          <div key={index} className="text-[#00ff88]">
+          <div key={index} className="text-[var(--glow-green)]">
             {line}
           </div>
         );
@@ -58,7 +58,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
       // Arrow/result lines
       if (line.startsWith("\u2192") || line.startsWith("->")) {
         return (
-          <div key={index} className="text-cyan-400">
+          <div key={index} className="text-cyan-600 dark:text-cyan-400">
             {line}
           </div>
         );
@@ -70,14 +70,14 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
         line.includes("\u2502")
       ) {
         return (
-          <div key={index} className="text-white/60">
+          <div key={index} className="text-[var(--text-muted)]">
             {line}
           </div>
         );
       }
       // Default
       return (
-        <div key={index} className="text-[#00ff88]/80">
+        <div key={index} className="text-[var(--glow-green)]/80">
           {line}
         </div>
       );
@@ -85,10 +85,10 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
   };
 
   return (
-    <div className="relative h-full flex flex-col bg-[#0a0a0f] border border-white/10 rounded-sm overflow-hidden">
+    <div className="relative h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm overflow-hidden">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/10">
-        <span className="text-xs text-white/50 font-mono tracking-wider uppercase">
+      <div className="flex items-center justify-between px-4 py-3 bg-[var(--border-color)] border-b border-[var(--border-color)]">
+        <span className="text-xs text-[var(--text-muted)] font-mono tracking-wider uppercase">
           Output
         </span>
         <div className="flex items-center gap-2">
@@ -102,24 +102,24 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
                   repeat: Infinity,
                 }}
               />
-              <span className="text-xs text-amber-400/80 font-mono">
+              <span className="text-xs text-amber-500 font-mono">
                 {isExecuting ? 'executing...' : 'compiling...'}
               </span>
             </>
           ) : hasError ? (
             <>
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-xs text-red-400/80 font-mono">error</span>
+              <span className="text-xs text-red-500 font-mono">error</span>
             </>
           ) : hasOutput ? (
             <>
-              <div className="w-2 h-2 rounded-full bg-[#00ff88]" />
-              <span className="text-xs text-[#00ff88]/80 font-mono">
+              <div className="w-2 h-2 rounded-full bg-[var(--glow-green)]" />
+              <span className="text-xs text-[var(--glow-green)] font-mono">
                 success
               </span>
             </>
           ) : (
-            <span className="text-xs text-white/30 font-mono">ready</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">ready</span>
           )}
         </div>
       </div>
@@ -137,7 +137,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
             >
               <div className="text-center">
                 <motion.div
-                  className="w-8 h-8 border-2 border-[#00ff88]/30 border-t-[#00ff88] rounded-full mx-auto mb-3"
+                  className="w-8 h-8 border-2 border-[var(--glow-green)]/30 border-t-[var(--glow-green)] rounded-full mx-auto mb-3"
                   animate={{ rotate: 360 }}
                   transition={{
                     duration: 1,
@@ -145,7 +145,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
                     ease: "linear",
                   }}
                 />
-                <p className="text-white/40 text-sm font-mono">
+                <p className="text-[var(--text-muted)] text-sm font-mono">
                   {isExecuting ? 'Executing Spirit...' : 'Compiling to MLIR...'}
                 </p>
               </div>
@@ -193,7 +193,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center justify-center h-full min-h-[120px] text-white/30 text-sm font-mono"
+              className="flex items-center justify-center h-full min-h-[120px] text-[var(--text-muted)] text-sm font-mono"
             >
               Press Compile or Ctrl+Enter to run
             </motion.div>
@@ -203,7 +203,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
 
       {/* Subtle glow effect for success state */}
       {hasOutput && !hasError && !isWorking && (
-        <div className="absolute -inset-2 bg-[#00ff88]/5 blur-xl -z-10 rounded-lg pointer-events-none" />
+        <div className="absolute -inset-2 bg-[var(--glow-green)]/5 blur-xl -z-10 rounded-lg pointer-events-none" />
       )}
 
       {/* Error glow effect */}

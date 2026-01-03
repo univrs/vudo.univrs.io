@@ -17,9 +17,10 @@ export function compile_dol(source) {
   const warnings = [];
 
   let spiritCount = 0;
+  let geneCount = 0;
   let functionCount = 0;
-  let inSpirit = false;
-  let currentSpirit = null;
+  let inBlock = false;
+  let currentBlock = null;
   let braceDepth = 0;
 
   for (let i = 0; i < lines.length; i++) {
@@ -33,30 +34,55 @@ export function compile_dol(source) {
     const spiritMatch = line.match(/^spirit\s+(\w+)\s*\{?/);
     if (spiritMatch) {
       spiritCount++;
-      currentSpirit = {
+      currentBlock = {
         type: 'Spirit',
         name: spiritMatch[1],
         body: [],
         line: lineNum
       };
-      inSpirit = true;
+      inBlock = true;
       if (line.includes('{')) braceDepth++;
       continue;
     }
 
-    // Detect function declaration
-    const fnMatch = line.match(/(?:pub\s+)?fn\s+(\w+)\s*\(/);
-    if (fnMatch) {
+    // Detect gene declaration
+    const geneMatch = line.match(/^gene\s+(\w+)\s*\{?/);
+    if (geneMatch) {
+      geneCount++;
+      currentBlock = {
+        type: 'Gene',
+        name: geneMatch[1],
+        body: [],
+        line: lineNum
+      };
+      inBlock = true;
+      if (line.includes('{')) braceDepth++;
+      continue;
+    }
+
+    // Detect field declaration (has keyword)
+    const hasMatch = line.match(/^has\s+(\w+)\s*:/);
+    if (hasMatch && inBlock && currentBlock) {
+      currentBlock.body.push({
+        type: 'Field',
+        name: hasMatch[1],
+        line: lineNum
+      });
+    }
+
+    // Detect function declaration (fun keyword, not fn)
+    const funMatch = line.match(/^fun\s+(\w+)\s*\(/);
+    if (funMatch) {
       functionCount++;
       const func = {
         type: 'Function',
-        name: fnMatch[1],
+        name: funMatch[1],
         params: [],
         body: '',
         line: lineNum
       };
-      if (inSpirit && currentSpirit) {
-        currentSpirit.body.push(func);
+      if (inBlock && currentBlock) {
+        currentBlock.body.push(func);
       } else {
         ast.push(func);
       }
@@ -67,10 +93,10 @@ export function compile_dol(source) {
       if (char === '{') braceDepth++;
       if (char === '}') {
         braceDepth--;
-        if (braceDepth === 0 && inSpirit && currentSpirit) {
-          ast.push(currentSpirit);
-          currentSpirit = null;
-          inSpirit = false;
+        if (braceDepth === 0 && inBlock && currentBlock) {
+          ast.push(currentBlock);
+          currentBlock = null;
+          inBlock = false;
         }
       }
     }
@@ -86,10 +112,10 @@ export function compile_dol(source) {
     });
   }
 
-  // Check for spirit declaration
-  if (spiritCount === 0 && !source.includes('fn ')) {
+  // Check for valid declaration
+  if (spiritCount === 0 && geneCount === 0 && !source.includes('fun ')) {
     errors.push({
-      message: 'Expected spirit or function declaration',
+      message: 'Expected spirit, gene, or fun declaration',
       line: 1,
       column: 1,
       error_type: 'SyntaxError'
@@ -104,6 +130,7 @@ export function compile_dol(source) {
     metadata: {
       version: '0.1.0-placeholder',
       spirit_count: spiritCount,
+      gene_count: geneCount,
       function_count: functionCount,
       source_lines: lines.length
     }

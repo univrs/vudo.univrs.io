@@ -7,11 +7,24 @@ interface DOLEditorProps {
   onChange: (value: string) => void;
 }
 
-const DEFAULT_CODE = `// My First Spirit
-spirit HelloWorld {
-  pub fn main() -> String {
-    "Hello from the Mycelium!"
+const DEFAULT_CODE = `// Define a Gene (like a class/struct with methods)
+gene Counter {
+  has value: Int
+
+  fun get() -> Int {
+    return self.value
   }
+
+  fun increment() {
+    self.value = self.value + 1
+  }
+}
+
+// Instantiate and use the Gene
+fun main() {
+  let c = Counter { value: 0 }
+  c.increment()
+  println(c.get())
 }`;
 
 export function DOLEditor({ value, onChange }: DOLEditorProps) {

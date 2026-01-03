@@ -9,6 +9,7 @@ import {
   randomClustering,
   randomPathLength,
   calculateSigma,
+  analyzeEcosystem,
   EnergySystemMetrics,
 } from '../../lib/wasm/thermodynamic';
 
@@ -106,23 +107,21 @@ function IntroSection({ onNext }: { onNext: () => void }) {
 
       <CodeBlock
         title="DOL Schema (eroei.dol)"
-        code={`module eroei @ 0.1.0
-
-gene EnergySystemMetrics {
-    has total_output_kwh: f64
-    has total_input_kwh: f64
-    has component_count: i64
+        code={`gene EnergySystemMetrics {
+    has total_output_kwh: Float
+    has total_input_kwh: Float
+    has component_count: Int
 
     constraint positive_output {
-        total_output_kwh >= 0.0
+        self.total_output_kwh >= 0.0
     }
 
-    fun system_eroei() -> f64 {
-        return total_output_kwh / total_input_kwh
+    fun system_eroei() -> Float {
+        return self.total_output_kwh / self.total_input_kwh
     }
 
-    fun is_viable() -> bool {
-        return system_eroei() >= 7.0
+    fun is_viable() -> Bool {
+        return self.system_eroei() >= 7.0
     }
 }`}
       />
@@ -432,7 +431,6 @@ function CombinedSection() {
 
   useEffect(() => {
     async function run() {
-      const { analyzeEcosystem } = await import('../../lib/wasm/thermodynamic');
       const result = await analyzeEcosystem(1.0, BigInt(nodes), 100, 6, 0.45, 3.9);
       setOutput(result);
     }
@@ -493,7 +491,7 @@ function ConceptCard({ title, description, formula }: { title: string; descripti
     <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
       <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
       <p className="text-sm text-[var(--text-secondary)] mb-4">{description}</p>
-      <code className="block p-3 rounded bg-black/50 text-[#00ff88] text-sm font-mono">{formula}</code>
+      <code className="block p-3 rounded bg-black text-[#00ff88] text-sm font-mono">{formula}</code>
     </div>
   );
 }
@@ -510,7 +508,7 @@ function CodeBlock({ title, code }: { title: string; code: string }) {
         <span className="text-xs text-[var(--text-muted)] ml-2">{title}</span>
       </div>
       <pre className="p-4 bg-black overflow-x-auto text-sm">
-        <code className="text-[var(--text-secondary)]">{code}</code>
+        <code className="text-[#00ff88]">{code}</code>
       </pre>
     </div>
   );

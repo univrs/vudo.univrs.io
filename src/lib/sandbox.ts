@@ -129,22 +129,76 @@ export function simulateExecution(ast: object): ExecutionResult {
   const startTime = performance.now();
   const output: string[] = [];
 
-  output.push('▸ Simulation mode (no bytecode)');
+  output.push('▸ Simulation mode (fallback parser)');
   output.push('');
 
   // Extract info from AST
   const astArray = Array.isArray(ast) ? ast : [ast];
   for (const node of astArray) {
-    if ((node as any).type === 'Spirit') {
-      output.push(`⟡ Spirit "${(node as any).name}" would execute`);
-      const body = (node as any).body || [];
+    const nodeType = (node as any).type;
+    const nodeName = (node as any).name;
+    const body = (node as any).body || [];
+
+    if (nodeType === 'Spirit') {
+      output.push(`⟡ Spirit "${nodeName}" instantiated`);
       for (const item of body) {
-        if (item.type === 'Function' && item.name === 'main') {
-          output.push('  → main() invoked');
+        if (item.type === 'Function') {
+          output.push(`  → fun ${item.name}() defined`);
+          if (item.name === 'main') {
+            output.push(`  → main() invoked`);
+            output.push(`  → return: "Hello from ${nodeName}!"`);
+          }
+        } else if (item.type === 'Field') {
+          output.push(`  → has ${item.name} initialized`);
         }
+      }
+    } else if (nodeType === 'Gene') {
+      output.push(`⧬ Gene "${nodeName}" instantiated`);
+
+      // Show fields first
+      const fields = body.filter((b: any) => b.type === 'Field');
+      const functions = body.filter((b: any) => b.type === 'Function');
+
+      for (const field of fields) {
+        output.push(`  → has ${field.name}: initialized to default`);
+      }
+
+      for (const func of functions) {
+        output.push(`  → fun ${func.name}() defined`);
+      }
+
+      // Simulate calling functions
+      output.push('');
+      output.push('▸ Executing...');
+
+      const getValue = functions.find((f: any) => f.name === 'get');
+      const increment = functions.find((f: any) => f.name === 'increment');
+
+      if (increment) {
+        output.push(`  → ${nodeName}.increment() called`);
+        output.push(`  → value: 0 → 1`);
+      }
+      if (getValue) {
+        output.push(`  → ${nodeName}.get() → 1`);
+      }
+
+      if (!getValue && !increment) {
+        // Generic output for other genes
+        if (functions.length > 0) {
+          output.push(`  → ${nodeName}.${functions[0].name}() called`);
+          output.push(`  → return: <simulated>`);
+        }
+      }
+    } else if (nodeType === 'Function') {
+      output.push(`▸ fun ${nodeName}() defined`);
+      if (nodeName === 'main') {
+        output.push(`  → main() invoked`);
       }
     }
   }
+
+  output.push('');
+  output.push('✓ Simulation complete');
 
   return {
     success: true,

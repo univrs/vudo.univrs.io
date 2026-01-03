@@ -22,98 +22,96 @@ const examples: Example[] = [
     {
         name: "Gene",
         code: `gene ProcessId {
-  type: UInt64
+  has value: Int
 
   constraint positive {
-    this.value > 0
+    self.value > 0
   }
 
-  exegesis {
-    A process knows its identity.
+  fun get() -> Int {
+    return self.value
   }
 }`,
         output: `✓ Gene ProcessId validated
-  ├─ type: UInt64 (64-bit unsigned)
+  ├─ has: value (Int)
   ├─ constraint: positive
-  │   └─ this.value > 0
-  └─ exegesis: attached
+  │   └─ self.value > 0
+  └─ fun: get() -> Int
 
-→ Compiled to MLIR: 42 bytes
-→ Type: Gene<UInt64, [Positive]>`,
+→ Compiled to WASM: 42 bytes
+→ Type: Gene<Int, [Positive]>`,
     },
     {
         name: "Pipeline",
         code: `gene Calculator {
-  fun transform(x: Int32) -> Int32 {
-    return x
+  fun transform(x: Int) -> Int {
+    x
       |> double
       >> increment
       |> square
   }
 
-  fun double(n: Int32) -> Int32 {
+  fun double(n: Int) -> Int {
     return n * 2
   }
 }`,
         output: `✓ Gene Calculator validated
-  ├─ function: transform
+  ├─ fun: transform
   │   └─ pipeline: double >> increment >> square
-  ├─ function: double
+  ├─ fun: double
   │   └─ body: n * 2
   └─ type inference: complete
 
-→ Compiled to MLIR: 128 bytes
+→ Compiled to WASM: 128 bytes
 → Pipeline optimized: 3 stages fused`,
     },
     {
         name: "Pattern Match",
         code: `gene Classifier {
-  fun classify(n: Int32) -> String {
+  fun classify(n: Int) -> String {
     match n {
-      0 { return "zero" }
-      n where n > 0 {
-        return "positive"
-      }
-      _ { return "negative" }
+      0 => "zero"
+      n if n > 0 => "positive"
+      _ => "negative"
     }
   }
 }`,
         output: `✓ Gene Classifier validated
-  ├─ function: classify
+  ├─ fun: classify
   │   └─ match: exhaustive ✓
   │       ├─ case: 0 → "zero"
   │       ├─ case: n > 0 → "positive"
   │       └─ case: _ → "negative"
   └─ return type: String
 
-→ Compiled to MLIR: 96 bytes
+→ Compiled to WASM: 96 bytes
 → Match compiled to jump table`,
     },
     {
-        name: "Trait",
-        code: `trait Mappable<A, B> {
-  requires {
-    map: (A -> B) -> Self<B>
+        name: "Spirit",
+        code: `spirit Counter @0.1.0 {
+  has value: Int = 0
+
+  fun init() {
+    self.value = 0
   }
 
-  law identity {
-    x.map(id) == x
+  fun increment() {
+    self.value = self.value + 1
   }
 
-  law composition {
-    x.map(f).map(g) == x.map(f >> g)
+  fun get() -> Int {
+    return self.value
   }
 }`,
-        output: `✓ Trait Mappable<A, B> validated
-  ├─ requires: map function
-  │   └─ signature: (A -> B) -> Self<B>
-  ├─ law: identity
-  │   └─ x.map(id) == x
-  └─ law: composition
-      └─ fusion law verified
+        output: `✓ Spirit Counter @0.1.0 validated
+  ├─ has: value (Int) = 0
+  ├─ fun: init() lifecycle hook
+  ├─ fun: increment() effectful(Mut)
+  └─ fun: get() -> Int
 
-→ Functor instance derivable
-→ Laws: machine-verifiable`,
+→ Compiled to WASM: 156 bytes
+→ Effects: Mut inferred`,
     },
 ];
 
@@ -138,6 +136,7 @@ interface Token {
 
 const KEYWORDS = new Set([
     "gene",
+    "spirit",
     "trait",
     "system",
     "constraint",
@@ -158,9 +157,14 @@ const KEYWORDS = new Set([
     "requires",
     "law",
     "type",
+    "has",
+    "mut",
+    "let",
+    "self",
 ]);
 
 const TYPES = new Set([
+    "Int",
     "Int8",
     "Int16",
     "Int32",
@@ -169,11 +173,14 @@ const TYPES = new Set([
     "UInt16",
     "UInt32",
     "UInt64",
+    "Float",
     "Float32",
     "Float64",
     "Bool",
     "String",
-    "Void",
+    "Unit",
+    "Any",
+    "List",
     "Self",
 ]);
 
