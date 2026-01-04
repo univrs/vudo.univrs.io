@@ -116,9 +116,9 @@ const dolKeywords = {
     'break', 'continue', 'return', 'yield', 'await', 'async',
   ],
 
-  // Functions (4 keywords)
+  // Functions (5 keywords)
   functions: [
-    'fun', 'proc', 'ritual', 'ceremony',
+    'fun', 'sex', 'proc', 'ritual', 'ceremony',
   ],
 
   // Network & Resources (9 keywords)

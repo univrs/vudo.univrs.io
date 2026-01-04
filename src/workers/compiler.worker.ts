@@ -30,12 +30,21 @@ async function initWasm(): Promise<boolean> {
 
   initPromise = (async () => {
     try {
-      // Fetch the JS module from public folder
-      const response = await fetch('/wasm/dol_wasm.js');
-      if (!response.ok) {
-        throw new Error(`Failed to fetch WASM module: ${response.status}`);
+      // Fetch both JS and WASM files in parallel
+      const [jsResponse, wasmResponse] = await Promise.all([
+        fetch('/wasm/dol_wasm.js'),
+        fetch('/wasm/dol_wasm_bg.wasm')
+      ]);
+
+      if (!jsResponse.ok) {
+        throw new Error(`Failed to fetch JS module: ${jsResponse.status}`);
       }
-      const jsCode = await response.text();
+      if (!wasmResponse.ok) {
+        throw new Error(`Failed to fetch WASM binary: ${wasmResponse.status}`);
+      }
+
+      const jsCode = await jsResponse.text();
+      const wasmBinary = await wasmResponse.arrayBuffer();
 
       // Create a blob URL to import the module
       const blob = new Blob([jsCode], { type: 'application/javascript' });
@@ -44,11 +53,15 @@ async function initWasm(): Promise<boolean> {
       try {
         // Dynamic import from blob URL
         const wasm = await import(/* @vite-ignore */ blobUrl);
+
+        // Initialize with the WASM binary we fetched (using new API format)
         if (typeof wasm.default === 'function') {
-          await wasm.default();
+          await wasm.default({ module_or_path: wasmBinary });
         }
+
         wasmModule = wasm;
         initialized = true;
+        console.log('WASM module initialized successfully');
         return true;
       } finally {
         URL.revokeObjectURL(blobUrl);
@@ -119,12 +132,13 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
   }
 };
 
-// Simple DOL syntax validator as fallback
+// Simple DOL v0.7.0 syntax validator as fallback
 function validateDolSyntax(source: string): { valid: boolean; error?: string; ast?: object[] } {
   // Check for spirit or gene declaration
   const hasSpirit = source.includes('spirit');
   const hasGene = source.includes('gene');
-  const hasFun = source.includes('fun ');
+  const hasFun = /\bfun\s/.test(source);
+  const hasSexFun = /\bsex\s+fun\s/.test(source);
 
   if (!hasSpirit && !hasGene && !hasFun) {
     return { valid: false, error: 'Expected spirit, gene, or fun declaration' };
@@ -140,27 +154,55 @@ function validateDolSyntax(source: string): { valid: boolean; error?: string; as
   // Parse basic AST for simulation
   const ast: object[] = [];
 
-  // Parse functions
-  const funMatches = source.matchAll(/fun\s+(\w+)\s*\(/g);
-  const functions = Array.from(funMatches).map(m => ({ type: 'Function', name: m[1] }));
+  // Parse pure functions
+  const pureFunMatches = source.matchAll(/(?<!sex\s+)fun\s+(\w+)\s*\(/g);
+  const pureFunctions = Array.from(pureFunMatches).map(m => ({
+    type: 'Function',
+    name: m[1],
+    effectful: false
+  }));
+
+  // Parse effectful functions (sex fun)
+  const sexFunMatches = source.matchAll(/sex\s+fun\s+(\w+)\s*\(/g);
+  const effectfulFunctions = Array.from(sexFunMatches).map(m => ({
+    type: 'Function',
+    name: m[1],
+    effectful: true
+  }));
+
+  const allFunctions = [...pureFunctions, ...effectfulFunctions];
 
   // Parse fields (has declarations)
   const hasMatches = source.matchAll(/has\s+(\w+)\s*:/g);
   const fields = Array.from(hasMatches).map(m => ({ type: 'Field', name: m[1] }));
 
-  const spiritMatch = source.match(/spirit\s+(\w+)/);
+  // Parse constraints
+  const constraintMatches = source.matchAll(/constraint\s+(\w+)\s*{/g);
+  const constraints = Array.from(constraintMatches).map(m => ({ type: 'Constraint', name: m[1] }));
+
+  // Parse spirit with version
+  const spiritMatch = source.match(/spirit\s+(\w+)\s*(@[\d.]+)?/);
   const geneMatch = source.match(/gene\s+(\w+)/);
 
   if (spiritMatch) {
-    ast.push({ type: 'Spirit', name: spiritMatch[1], body: [...fields, ...functions] });
+    ast.push({
+      type: 'Spirit',
+      name: spiritMatch[1],
+      version: spiritMatch[2]?.slice(1) || null,
+      body: [...fields, ...constraints, ...allFunctions]
+    });
   }
   if (geneMatch) {
-    ast.push({ type: 'Gene', name: geneMatch[1], body: [...fields, ...functions] });
+    ast.push({
+      type: 'Gene',
+      name: geneMatch[1],
+      body: [...fields, ...constraints, ...allFunctions]
+    });
   }
 
   // Add standalone functions if no gene/spirit
-  if (!spiritMatch && !geneMatch && functions.length > 0) {
-    ast.push(...functions);
+  if (!spiritMatch && !geneMatch && allFunctions.length > 0) {
+    ast.push(...allFunctions);
   }
 
   return { valid: true, ast };

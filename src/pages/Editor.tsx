@@ -52,13 +52,13 @@ export function Editor() {
       const result = compiler.result as any;
       if (result.success && result.ast) {
         setIsExecuting(true);
-        // Simulate execution since we have AST results
-        const execResult = simulateExecution(result.ast);
+        // Simulate execution with source code for accurate values
+        const execResult = simulateExecution(result.ast, code);
         setExecutionResult(execResult);
         setIsExecuting(false);
       }
     }
-  }, [compiler.status, compiler.result]);
+  }, [compiler.status, compiler.result, code]);
 
   // Format the output from compilation result
   const output = useMemo(() => {

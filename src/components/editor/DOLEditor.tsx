@@ -7,21 +7,23 @@ interface DOLEditorProps {
   onChange: (value: string) => void;
 }
 
-const DEFAULT_CODE = `// Define a Gene (like a class/struct with methods)
+const DEFAULT_CODE = `// DOL v0.7.0 - Define a Gene with fields and methods
 gene Counter {
-  has value: Int
+  has value: Int = 0
 
+  // Pure function - no side effects
   fun get() -> Int {
     return self.value
   }
 
-  fun increment() {
+  // Effectful function - mutates state
+  sex fun increment() {
     self.value = self.value + 1
   }
 }
 
-// Instantiate and use the Gene
-fun main() {
+// Top-level effectful function
+sex fun main() {
   let c = Counter { value: 0 }
   c.increment()
   println(c.get())

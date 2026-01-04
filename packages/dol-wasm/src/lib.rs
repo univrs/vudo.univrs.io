@@ -1,11 +1,15 @@
-//! DOL-WASM: WebAssembly bindings for the DOL language compiler
+//! DOL-WASM: WebAssembly bindings for the DOL v0.7.0 language compiler
 //!
 //! This crate provides a WASM interface for parsing and validating DOL source code.
 //! For MVP, it performs basic syntax validation and returns an AST-like structure.
 //!
-//! # DOL Syntax Overview
-//! - `spirit` keyword defines a reactive computation unit
-//! - `fn` keyword defines functions within spirits
+//! # DOL v0.7.0 Syntax Overview
+//! - `spirit` keyword defines a reactive computation unit (versioned with @X.Y.Z)
+//! - `gene` keyword defines a reusable type with methods and constraints
+//! - `fun` keyword defines pure functions
+//! - `sex fun` keyword defines effectful functions (Side EXecution)
+//! - `has` keyword declares fields within genes/spirits
+//! - `exegesis` block provides documentation
 //! - Curly braces `{}` for block structure
 //! - Comments with `//` and `/* */`
 
@@ -16,41 +20,47 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum DolNode {
-    /// A spirit declaration (reactive computation unit)
+    /// A spirit declaration (reactive computation unit with version)
     Spirit {
+        name: String,
+        version: Option<String>,
+        body: Vec<DolNode>,
+        line: usize,
+    },
+    /// A gene declaration (reusable type with methods and constraints)
+    Gene {
         name: String,
         body: Vec<DolNode>,
         line: usize,
     },
-    /// A function declaration within a spirit
+    /// A function declaration (pure function with `fun`)
     Function {
         name: String,
         params: Vec<String>,
+        return_type: Option<String>,
         body: String,
+        effectful: bool, // true if declared with `sex fun`
         line: usize,
     },
-    /// A state binding
-    State {
+    /// A field declaration (using `has` keyword)
+    Field {
         name: String,
-        initial_value: String,
+        field_type: String,
+        default_value: Option<String>,
         line: usize,
     },
-    /// An effect declaration
-    Effect {
-        dependencies: Vec<String>,
+    /// A constraint block
+    Constraint {
+        name: String,
         body: String,
         line: usize,
     },
+    /// An exegesis (documentation) block
+    Exegesis { content: String, line: usize },
     /// A comment node
-    Comment {
-        content: String,
-        line: usize,
-    },
+    Comment { content: String, line: usize },
     /// Unknown or unrecognized syntax
-    Unknown {
-        content: String,
-        line: usize,
-    },
+    Unknown { content: String, line: usize },
 }
 
 /// Result of DOL compilation/parsing
@@ -82,30 +92,66 @@ pub struct CompileError {
 pub struct CompileMetadata {
     pub version: String,
     pub spirit_count: usize,
+    pub gene_count: usize,
     pub function_count: usize,
+    pub field_count: usize,
+    pub constraint_count: usize,
     pub source_lines: usize,
 }
 
 /// Token types for lexical analysis
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
+    // Declaration keywords
     Spirit,
-    Fn,
-    State,
-    Effect,
+    Gene,
+    Trait,
+    // Function keywords
+    Fun,
+    Sex, // Side EXecution marker
+    // Field/binding keywords
+    Has,
     Let,
     Const,
+    Mut,
+    // Control flow
+    If,
+    Else,
+    Match,
+    Return,
+    // Documentation
+    Exegesis,
+    // Constraint
+    Constraint,
+    // Other keywords
+    Pub,
+    Self_,
+    // Literals and identifiers
     Identifier(String),
+    StringLiteral(String),
+    NumberLiteral(String),
+    Version(String), // @X.Y.Z
+    // Punctuation
     OpenBrace,
     CloseBrace,
     OpenParen,
     CloseParen,
+    OpenBracket,
+    CloseBracket,
     Colon,
-    Arrow,
+    Arrow,    // ->
+    FatArrow, // =>
     Comma,
+    Dot,
     Equals,
-    StringLiteral(String),
-    NumberLiteral(String),
+    // Operators
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Pipe,      // |
+    PipeArrow, // |>
+    // Other
     Comment(String),
     Whitespace,
     Newline,
@@ -225,15 +271,48 @@ impl<'a> Lexer<'a> {
             Some('}') => (Token::CloseBrace, line, column),
             Some('(') => (Token::OpenParen, line, column),
             Some(')') => (Token::CloseParen, line, column),
+            Some('[') => (Token::OpenBracket, line, column),
+            Some(']') => (Token::CloseBracket, line, column),
             Some(':') => (Token::Colon, line, column),
             Some(',') => (Token::Comma, line, column),
-            Some('=') => {
+            Some('.') => (Token::Dot, line, column),
+            Some('+') => (Token::Plus, line, column),
+            Some('*') => (Token::Star, line, column),
+            Some('-') => {
                 if self.peek_char() == Some(&'>') {
                     self.next_char();
                     (Token::Arrow, line, column)
                 } else {
+                    (Token::Minus, line, column)
+                }
+            }
+            Some('=') => {
+                if self.peek_char() == Some(&'>') {
+                    self.next_char();
+                    (Token::FatArrow, line, column)
+                } else {
                     (Token::Equals, line, column)
                 }
+            }
+            Some('|') => {
+                if self.peek_char() == Some(&'>') {
+                    self.next_char();
+                    (Token::PipeArrow, line, column)
+                } else {
+                    (Token::Pipe, line, column)
+                }
+            }
+            Some('@') => {
+                // Version literal: @X.Y.Z
+                let mut version = String::new();
+                while let Some(&c) = self.peek_char() {
+                    if c.is_numeric() || c == '.' {
+                        version.push(self.next_char().unwrap());
+                    } else {
+                        break;
+                    }
+                }
+                (Token::Version(version), line, column)
             }
             Some('/') => {
                 if self.peek_char() == Some(&'/') {
@@ -245,7 +324,7 @@ impl<'a> Lexer<'a> {
                     let comment = self.read_block_comment();
                     (Token::Comment(comment), line, column)
                 } else {
-                    (Token::Unknown('/'), line, column)
+                    (Token::Slash, line, column)
                 }
             }
             Some('"') => {
@@ -259,12 +338,30 @@ impl<'a> Lexer<'a> {
             Some(c) if c.is_alphabetic() || c == '_' => {
                 let ident = self.read_identifier(c);
                 let token = match ident.as_str() {
+                    // Declaration keywords
                     "spirit" => Token::Spirit,
-                    "fn" => Token::Fn,
-                    "state" => Token::State,
-                    "effect" => Token::Effect,
+                    "gene" => Token::Gene,
+                    "trait" => Token::Trait,
+                    // Function keywords
+                    "fun" => Token::Fun,
+                    "sex" => Token::Sex,
+                    // Field/binding keywords
+                    "has" => Token::Has,
                     "let" => Token::Let,
                     "const" => Token::Const,
+                    "mut" => Token::Mut,
+                    // Control flow
+                    "if" => Token::If,
+                    "else" => Token::Else,
+                    "match" => Token::Match,
+                    "return" => Token::Return,
+                    // Documentation
+                    "exegesis" => Token::Exegesis,
+                    // Constraint
+                    "constraint" => Token::Constraint,
+                    // Other keywords
+                    "pub" => Token::Pub,
+                    "self" => Token::Self_,
                     _ => Token::Identifier(ident),
                 };
                 (token, line, column)
@@ -354,6 +451,16 @@ impl<'a> Parser<'a> {
         let name = self.expect_identifier()?;
         self.skip_newlines();
 
+        // Check for version @X.Y.Z
+        let version = if let Token::Version(v) = &self.current_token {
+            let ver = Some(v.clone());
+            self.advance();
+            self.skip_newlines();
+            ver
+        } else {
+            None
+        };
+
         // Expect opening brace
         if self.current_token != Token::OpenBrace {
             self.add_error("Expected '{' after spirit name", "SyntaxError");
@@ -361,16 +468,46 @@ impl<'a> Parser<'a> {
         }
         self.advance();
 
+        let body = self.parse_body();
+
+        Some(DolNode::Spirit {
+            name,
+            version,
+            body,
+            line,
+        })
+    }
+
+    fn parse_gene(&mut self) -> Option<DolNode> {
+        let line = self.current_line;
+        self.advance(); // consume 'gene'
+        self.skip_newlines();
+
+        let name = self.expect_identifier()?;
+        self.skip_newlines();
+
+        // Expect opening brace
+        if self.current_token != Token::OpenBrace {
+            self.add_error("Expected '{' after gene name", "SyntaxError");
+            return None;
+        }
+        self.advance();
+
+        let body = self.parse_body();
+
+        Some(DolNode::Gene { name, body, line })
+    }
+
+    fn parse_body(&mut self) -> Vec<DolNode> {
         let mut body = Vec::new();
         let mut brace_depth = 1;
 
-        // Parse spirit body
         while brace_depth > 0 {
             self.skip_newlines();
 
             match &self.current_token {
                 Token::Eof => {
-                    self.add_error("Unexpected end of file, unclosed spirit block", "SyntaxError");
+                    self.add_error("Unexpected end of file, unclosed block", "SyntaxError");
                     break;
                 }
                 Token::OpenBrace => {
@@ -381,20 +518,41 @@ impl<'a> Parser<'a> {
                     brace_depth -= 1;
                     self.advance();
                 }
-                Token::Fn => {
-                    if let Some(func) = self.parse_function() {
+                Token::Fun => {
+                    if let Some(func) = self.parse_function(false) {
                         body.push(func);
                     }
                 }
-                Token::State => {
-                    if let Some(state) = self.parse_state() {
-                        body.push(state);
+                Token::Sex => {
+                    // sex fun = effectful function
+                    self.advance();
+                    self.skip_newlines();
+                    if self.current_token == Token::Fun {
+                        if let Some(func) = self.parse_function(true) {
+                            body.push(func);
+                        }
+                    } else {
+                        self.add_error("Expected 'fun' after 'sex'", "SyntaxError");
                     }
                 }
-                Token::Effect => {
-                    if let Some(effect) = self.parse_effect() {
-                        body.push(effect);
+                Token::Has => {
+                    if let Some(field) = self.parse_field() {
+                        body.push(field);
                     }
+                }
+                Token::Constraint => {
+                    if let Some(constraint) = self.parse_constraint() {
+                        body.push(constraint);
+                    }
+                }
+                Token::Exegesis => {
+                    if let Some(exegesis) = self.parse_exegesis() {
+                        body.push(exegesis);
+                    }
+                }
+                Token::Pub => {
+                    // Skip 'pub' modifier and continue parsing
+                    self.advance();
                 }
                 Token::Comment(content) => {
                     body.push(DolNode::Comment {
@@ -409,12 +567,12 @@ impl<'a> Parser<'a> {
             }
         }
 
-        Some(DolNode::Spirit { name, body, line })
+        body
     }
 
-    fn parse_function(&mut self) -> Option<DolNode> {
+    fn parse_function(&mut self, effectful: bool) -> Option<DolNode> {
         let line = self.current_line;
-        self.advance(); // consume 'fn'
+        self.advance(); // consume 'fun'
         self.skip_newlines();
 
         let name = self.expect_identifier()?;
@@ -430,6 +588,16 @@ impl<'a> Parser<'a> {
                     params.push(param.clone());
                     self.advance();
                     self.skip_newlines();
+                    // Skip type annotation: name: Type
+                    if self.current_token == Token::Colon {
+                        self.advance();
+                        self.skip_newlines();
+                        // Skip the type
+                        if let Token::Identifier(_) = &self.current_token {
+                            self.advance();
+                        }
+                    }
+                    self.skip_newlines();
                     if self.current_token == Token::Comma {
                         self.advance();
                     }
@@ -443,6 +611,23 @@ impl<'a> Parser<'a> {
                 self.advance();
             }
         }
+
+        self.skip_newlines();
+
+        // Parse return type: -> Type
+        let return_type = if self.current_token == Token::Arrow {
+            self.advance();
+            self.skip_newlines();
+            if let Token::Identifier(t) = &self.current_token {
+                let ret = Some(t.clone());
+                self.advance();
+                ret
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         self.skip_newlines();
 
@@ -464,12 +649,20 @@ impl<'a> Parser<'a> {
                         }
                     }
                     Token::Identifier(s) => body.push_str(s),
+                    Token::Self_ => body.push_str("self"),
+                    Token::Return => body.push_str("return"),
                     Token::StringLiteral(s) => {
                         body.push('"');
                         body.push_str(s);
                         body.push('"');
                     }
                     Token::NumberLiteral(n) => body.push_str(n),
+                    Token::Dot => body.push('.'),
+                    Token::Plus => body.push('+'),
+                    Token::Minus => body.push('-'),
+                    Token::Star => body.push('*'),
+                    Token::Slash => body.push('/'),
+                    Token::Equals => body.push('='),
                     Token::Newline => body.push('\n'),
                     _ => body.push(' '),
                 }
@@ -480,78 +673,81 @@ impl<'a> Parser<'a> {
         Some(DolNode::Function {
             name,
             params,
+            return_type,
             body: body.trim().to_string(),
+            effectful,
             line,
         })
     }
 
-    fn parse_state(&mut self) -> Option<DolNode> {
+    fn parse_field(&mut self) -> Option<DolNode> {
         let line = self.current_line;
-        self.advance(); // consume 'state'
+        self.advance(); // consume 'has'
         self.skip_newlines();
 
         let name = self.expect_identifier()?;
         self.skip_newlines();
 
-        let mut initial_value = String::new();
-        if self.current_token == Token::Equals {
+        // Parse type: name: Type
+        let field_type = if self.current_token == Token::Colon {
             self.advance();
             self.skip_newlines();
+            if let Token::Identifier(t) = &self.current_token {
+                let ftype = t.clone();
+                self.advance();
+                ftype
+            } else {
+                "Unknown".to_string()
+            }
+        } else {
+            "Unknown".to_string()
+        };
 
-            // Read the initial value
+        self.skip_newlines();
+
+        // Parse default value: = value
+        let default_value = if self.current_token == Token::Equals {
+            self.advance();
+            self.skip_newlines();
             match &self.current_token {
                 Token::StringLiteral(s) => {
-                    initial_value = format!("\"{}\"", s);
+                    let val = Some(format!("\"{}\"", s));
                     self.advance();
+                    val
                 }
                 Token::NumberLiteral(n) => {
-                    initial_value = n.clone();
+                    let val = Some(n.clone());
                     self.advance();
+                    val
                 }
                 Token::Identifier(i) => {
-                    initial_value = i.clone();
+                    let val = Some(i.clone());
                     self.advance();
+                    val
                 }
-                _ => {}
+                _ => None,
             }
-        }
+        } else {
+            None
+        };
 
-        Some(DolNode::State {
+        Some(DolNode::Field {
             name,
-            initial_value,
+            field_type,
+            default_value,
             line,
         })
     }
 
-    fn parse_effect(&mut self) -> Option<DolNode> {
+    fn parse_constraint(&mut self) -> Option<DolNode> {
         let line = self.current_line;
-        self.advance(); // consume 'effect'
+        self.advance(); // consume 'constraint'
         self.skip_newlines();
 
-        let mut dependencies = Vec::new();
-
-        // Parse dependencies in brackets if present
-        if self.current_token == Token::OpenParen {
-            self.advance();
-            while self.current_token != Token::CloseParen && self.current_token != Token::Eof {
-                if let Token::Identifier(dep) = &self.current_token {
-                    dependencies.push(dep.clone());
-                    self.advance();
-                    if self.current_token == Token::Comma {
-                        self.advance();
-                    }
-                } else {
-                    self.advance();
-                }
-            }
-            if self.current_token == Token::CloseParen {
-                self.advance();
-            }
-        }
-
+        let name = self.expect_identifier()?;
         self.skip_newlines();
 
-        // Parse effect body
+        // Parse constraint body
         let mut body = String::new();
         if self.current_token == Token::OpenBrace {
             self.advance();
@@ -568,6 +764,9 @@ impl<'a> Parser<'a> {
                             body.push('}');
                         }
                     }
+                    Token::Identifier(s) => body.push_str(s),
+                    Token::Self_ => body.push_str("self"),
+                    Token::Dot => body.push('.'),
                     Token::Newline => body.push('\n'),
                     _ => body.push(' '),
                 }
@@ -575,9 +774,53 @@ impl<'a> Parser<'a> {
             }
         }
 
-        Some(DolNode::Effect {
-            dependencies,
+        Some(DolNode::Constraint {
+            name,
             body: body.trim().to_string(),
+            line,
+        })
+    }
+
+    fn parse_exegesis(&mut self) -> Option<DolNode> {
+        let line = self.current_line;
+        self.advance(); // consume 'exegesis'
+        self.skip_newlines();
+
+        // Parse exegesis body
+        let mut content = String::new();
+        if self.current_token == Token::OpenBrace {
+            self.advance();
+            let mut brace_depth = 1;
+            while brace_depth > 0 && self.current_token != Token::Eof {
+                match &self.current_token {
+                    Token::OpenBrace => {
+                        brace_depth += 1;
+                        content.push('{');
+                    }
+                    Token::CloseBrace => {
+                        brace_depth -= 1;
+                        if brace_depth > 0 {
+                            content.push('}');
+                        }
+                    }
+                    Token::Identifier(s) => {
+                        if !content.is_empty()
+                            && !content.ends_with('\n')
+                            && !content.ends_with(' ')
+                        {
+                            content.push(' ');
+                        }
+                        content.push_str(s);
+                    }
+                    Token::Newline => content.push('\n'),
+                    _ => content.push(' '),
+                }
+                self.advance();
+            }
+        }
+
+        Some(DolNode::Exegesis {
+            content: content.trim().to_string(),
             line,
         })
     }
@@ -595,6 +838,11 @@ impl<'a> Parser<'a> {
                         nodes.push(spirit);
                     }
                 }
+                Token::Gene => {
+                    if let Some(gene) = self.parse_gene() {
+                        nodes.push(gene);
+                    }
+                }
                 Token::Comment(content) => {
                     nodes.push(DolNode::Comment {
                         content: content.clone(),
@@ -602,10 +850,32 @@ impl<'a> Parser<'a> {
                     });
                     self.advance();
                 }
-                Token::Fn => {
-                    // Top-level function (not in spirit)
-                    if let Some(func) = self.parse_function() {
+                Token::Exegesis => {
+                    // Top-level exegesis (module documentation)
+                    if let Some(exegesis) = self.parse_exegesis() {
+                        nodes.push(exegesis);
+                    }
+                }
+                Token::Pub => {
+                    // Skip 'pub' modifier and continue parsing
+                    self.advance();
+                }
+                Token::Fun => {
+                    // Top-level pure function
+                    if let Some(func) = self.parse_function(false) {
                         nodes.push(func);
+                    }
+                }
+                Token::Sex => {
+                    // Top-level effectful function (sex fun)
+                    self.advance();
+                    self.skip_newlines();
+                    if self.current_token == Token::Fun {
+                        if let Some(func) = self.parse_function(true) {
+                            nodes.push(func);
+                        }
+                    } else {
+                        self.add_error("Expected 'fun' after 'sex'", "SyntaxError");
                     }
                 }
                 _ => {
@@ -723,9 +993,27 @@ pub fn compile_dol(source: &str) -> Result<JsValue, JsValue> {
     let mut all_errors = bracket_errors;
     all_errors.extend(parser.errors);
 
-    // Count spirits and functions
-    let spirit_count = ast.iter().filter(|n| matches!(n, DolNode::Spirit { .. })).count();
-    let function_count = ast.iter().filter(|n| matches!(n, DolNode::Function { .. })).count();
+    // Count various node types
+    let spirit_count = ast
+        .iter()
+        .filter(|n| matches!(n, DolNode::Spirit { .. }))
+        .count();
+    let gene_count = ast
+        .iter()
+        .filter(|n| matches!(n, DolNode::Gene { .. }))
+        .count();
+    let function_count = ast
+        .iter()
+        .filter(|n| matches!(n, DolNode::Function { .. }))
+        .count();
+    let field_count = ast
+        .iter()
+        .filter(|n| matches!(n, DolNode::Field { .. }))
+        .count();
+    let constraint_count = ast
+        .iter()
+        .filter(|n| matches!(n, DolNode::Constraint { .. }))
+        .count();
 
     let result = CompileResult {
         success: all_errors.is_empty(),
@@ -733,9 +1021,12 @@ pub fn compile_dol(source: &str) -> Result<JsValue, JsValue> {
         errors: all_errors,
         warnings: parser.warnings,
         metadata: CompileMetadata {
-            version: "0.1.0".to_string(),
+            version: "0.7.0".to_string(),
             spirit_count,
+            gene_count,
             function_count,
+            field_count,
+            constraint_count,
             source_lines: source.lines().count(),
         },
     };
@@ -748,7 +1039,7 @@ pub fn compile_dol(source: &str) -> Result<JsValue, JsValue> {
 /// Get the version of the DOL compiler
 #[wasm_bindgen]
 pub fn get_version() -> String {
-    "0.1.0".to_string()
+    "0.7.0".to_string()
 }
 
 /// Validate DOL source without full compilation
@@ -780,9 +1071,9 @@ mod tests {
     #[test]
     fn test_validate_brackets_valid() {
         let source = r#"
-            spirit Counter {
-                fn increment() {
-                    count = count + 1
+            spirit Counter @0.1.0 {
+                fun increment() {
+                    self.count = self.count + 1
                 }
             }
         "#;
@@ -793,9 +1084,9 @@ mod tests {
     #[test]
     fn test_validate_brackets_unclosed() {
         let source = r#"
-            spirit Counter {
-                fn increment() {
-                    count = count + 1
+            spirit Counter @0.1.0 {
+                fun increment() {
+                    self.count = self.count + 1
             }
         "#;
         let errors = validate_brackets(source);
@@ -803,13 +1094,13 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_spirit() {
+    fn test_parse_spirit_with_version() {
         let source = r#"
-            spirit Counter {
-                state count = 0
+            spirit Counter @0.1.0 {
+                has count: Int = 0
 
-                fn increment() {
-                    count = count + 1
+                fun increment() {
+                    self.count = self.count + 1
                 }
             }
         "#;
@@ -817,16 +1108,115 @@ mod tests {
         let ast = parser.parse();
 
         assert!(!ast.is_empty());
-        assert!(matches!(ast[0], DolNode::Spirit { .. }));
+        if let DolNode::Spirit {
+            name,
+            version,
+            body,
+            ..
+        } = &ast[0]
+        {
+            assert_eq!(name, "Counter");
+            assert_eq!(version, &Some("0.1.0".to_string()));
+            assert!(!body.is_empty());
+        } else {
+            panic!("Expected Spirit node");
+        }
+    }
+
+    #[test]
+    fn test_parse_gene() {
+        let source = r#"
+            gene ProcessId {
+                has value: Int
+
+                constraint positive {
+                    self.value > 0
+                }
+
+                fun get() -> Int {
+                    return self.value
+                }
+            }
+        "#;
+        let mut parser = Parser::new(source);
+        let ast = parser.parse();
+
+        assert!(!ast.is_empty());
+        if let DolNode::Gene { name, body, .. } = &ast[0] {
+            assert_eq!(name, "ProcessId");
+            // Should have field, constraint, and function
+            assert!(body.iter().any(|n| matches!(n, DolNode::Field { .. })));
+            assert!(body.iter().any(|n| matches!(n, DolNode::Constraint { .. })));
+            assert!(body.iter().any(|n| matches!(n, DolNode::Function { .. })));
+        } else {
+            panic!("Expected Gene node");
+        }
+    }
+
+    #[test]
+    fn test_parse_effectful_function() {
+        let source = r#"
+            sex fun print_hello() {
+                println("Hello")
+            }
+        "#;
+        let mut parser = Parser::new(source);
+        let ast = parser.parse();
+
+        assert!(!ast.is_empty());
+        if let DolNode::Function {
+            name, effectful, ..
+        } = &ast[0]
+        {
+            assert_eq!(name, "print_hello");
+            assert!(effectful);
+        } else {
+            panic!("Expected effectful Function node");
+        }
+    }
+
+    #[test]
+    fn test_parse_pure_function() {
+        let source = r#"
+            fun add(a: Int, b: Int) -> Int {
+                return a + b
+            }
+        "#;
+        let mut parser = Parser::new(source);
+        let ast = parser.parse();
+
+        assert!(!ast.is_empty());
+        if let DolNode::Function {
+            name,
+            effectful,
+            return_type,
+            ..
+        } = &ast[0]
+        {
+            assert_eq!(name, "add");
+            assert!(!effectful);
+            assert_eq!(return_type, &Some("Int".to_string()));
+        } else {
+            panic!("Expected pure Function node");
+        }
     }
 
     #[test]
     fn test_validate_valid_source() {
         let source = r#"
-            spirit App {
-                fn render() {}
+            gene Counter {
+                has value: Int = 0
+
+                fun get() -> Int {
+                    return self.value
+                }
             }
         "#;
         assert!(validate_dol(source));
+    }
+
+    #[test]
+    fn test_version() {
+        assert_eq!(get_version(), "0.7.0");
     }
 }
