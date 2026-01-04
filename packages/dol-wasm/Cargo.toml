@@ -1,8 +1,8 @@
 [package]
 name = "dol-wasm"
-version = "0.1.0"
+version = "0.7.0"
 edition = "2021"
-description = "DOL language compiler targeting WebAssembly"
+description = "DOL v0.7.0 language compiler targeting WebAssembly"
 authors = ["VUDO Team"]
 license = "MIT"
 

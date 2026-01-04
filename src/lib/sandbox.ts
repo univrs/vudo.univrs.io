@@ -124,16 +124,38 @@ async function executeWasmInternal(wasm: Uint8Array): Promise<string> {
 
 /**
  * Simulate execution for AST-only compilation results
+ * Parses source code to extract actual values for simulation
  */
-export function simulateExecution(ast: object): ExecutionResult {
+export function simulateExecution(ast: object, source?: string): ExecutionResult {
   const startTime = performance.now();
   const output: string[] = [];
 
-  output.push('▸ Simulation mode (fallback parser)');
-  output.push('');
+  // Parse values from source code if available
+  let initialValue = 0;
+  let incrementAmount = 1;
+  let incrementCalls = 0;
+
+  if (source) {
+    // Parse initial value: "let c = Counter { value: X }"
+    const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
+    if (initMatch) {
+      initialValue = parseInt(initMatch[1], 10);
+    }
+
+    // Parse increment: "self.value = self.value + X" or "self.value + X"
+    const incrMatch = source.match(/self\.value\s*(?:=\s*self\.value\s*)?\+\s*(\d+)/);
+    if (incrMatch) {
+      incrementAmount = parseInt(incrMatch[1], 10);
+    }
+
+    // Count increment calls
+    const callMatches = source.match(/\.increment\(\)/g);
+    incrementCalls = callMatches ? callMatches.length : 0;
+  }
 
   // Extract info from AST
   const astArray = Array.isArray(ast) ? ast : [ast];
+
   for (const node of astArray) {
     const nodeType = (node as any).type;
     const nodeName = (node as any).name;
@@ -144,61 +166,54 @@ export function simulateExecution(ast: object): ExecutionResult {
       for (const item of body) {
         if (item.type === 'Function') {
           output.push(`  → fun ${item.name}() defined`);
-          if (item.name === 'main') {
-            output.push(`  → main() invoked`);
-            output.push(`  → return: "Hello from ${nodeName}!"`);
-          }
         } else if (item.type === 'Field') {
           output.push(`  → has ${item.name} initialized`);
         }
       }
     } else if (nodeType === 'Gene') {
-      output.push(`⧬ Gene "${nodeName}" instantiated`);
+      output.push(`⧬ Gene "${nodeName}" instantiated with value: ${initialValue}`);
 
-      // Show fields first
+      // Show fields and functions
       const fields = body.filter((b: any) => b.type === 'Field');
       const functions = body.filter((b: any) => b.type === 'Function');
 
       for (const field of fields) {
-        output.push(`  → has ${field.name}: initialized to default`);
+        output.push(`  → has ${field.name}: ${initialValue}`);
       }
 
-      for (const func of functions) {
-        output.push(`  → fun ${func.name}() defined`);
-      }
-
-      // Simulate calling functions
       output.push('');
-      output.push('▸ Executing...');
+      output.push('▸ Executing main()...');
 
-      const getValue = functions.find((f: any) => f.name === 'get');
+      // Simulate increment calls
+      let currentValue = initialValue;
       const increment = functions.find((f: any) => f.name === 'increment');
+      const getValue = functions.find((f: any) => f.name === 'get');
 
-      if (increment) {
-        output.push(`  → ${nodeName}.increment() called`);
-        output.push(`  → value: 0 → 1`);
-      }
-      if (getValue) {
-        output.push(`  → ${nodeName}.get() → 1`);
-      }
-
-      if (!getValue && !increment) {
-        // Generic output for other genes
-        if (functions.length > 0) {
-          output.push(`  → ${nodeName}.${functions[0].name}() called`);
-          output.push(`  → return: <simulated>`);
+      if (increment && incrementCalls > 0) {
+        for (let i = 0; i < incrementCalls; i++) {
+          const oldValue = currentValue;
+          currentValue += incrementAmount;
+          output.push(`  → ${nodeName}.increment(): ${oldValue} + ${incrementAmount} = ${currentValue}`);
         }
       }
+
+      if (getValue) {
+        output.push(`  → ${nodeName}.get() → ${currentValue}`);
+      }
+
+      // Check for println
+      if (source && source.includes('println')) {
+        output.push(`  📤 println: ${currentValue}`);
+      }
+
+      output.push('');
+      output.push(`✓ Final value: ${currentValue}`);
     } else if (nodeType === 'Function') {
-      output.push(`▸ fun ${nodeName}() defined`);
       if (nodeName === 'main') {
-        output.push(`  → main() invoked`);
+        // main is handled above
       }
     }
   }
-
-  output.push('');
-  output.push('✓ Simulation complete');
 
   return {
     success: true,

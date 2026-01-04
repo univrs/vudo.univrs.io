@@ -5,8 +5,9 @@
  * Shows "Systems that know what they are" in action
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCompiler } from "../hooks/useCompiler";
 
 // ═══════════════════════════════════════════════════════════════════
 // EXAMPLES
@@ -15,7 +16,6 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Example {
     name: string;
     code: string;
-    output: string;
 }
 
 const examples: Example[] = [
@@ -32,14 +32,6 @@ const examples: Example[] = [
     return self.value
   }
 }`,
-        output: `✓ Gene ProcessId validated
-  ├─ has: value (Int)
-  ├─ constraint: positive
-  │   └─ self.value > 0
-  └─ fun: get() -> Int
-
-→ Compiled to WASM: 42 bytes
-→ Type: Gene<Int, [Positive]>`,
     },
     {
         name: "Pipeline",
@@ -55,15 +47,6 @@ const examples: Example[] = [
     return n * 2
   }
 }`,
-        output: `✓ Gene Calculator validated
-  ├─ fun: transform
-  │   └─ pipeline: double >> increment >> square
-  ├─ fun: double
-  │   └─ body: n * 2
-  └─ type inference: complete
-
-→ Compiled to WASM: 128 bytes
-→ Pipeline optimized: 3 stages fused`,
     },
     {
         name: "Pattern Match",
@@ -76,16 +59,6 @@ const examples: Example[] = [
     }
   }
 }`,
-        output: `✓ Gene Classifier validated
-  ├─ fun: classify
-  │   └─ match: exhaustive ✓
-  │       ├─ case: 0 → "zero"
-  │       ├─ case: n > 0 → "positive"
-  │       └─ case: _ → "negative"
-  └─ return type: String
-
-→ Compiled to WASM: 96 bytes
-→ Match compiled to jump table`,
     },
     {
         name: "Spirit",
@@ -96,7 +69,7 @@ const examples: Example[] = [
     self.value = 0
   }
 
-  fun increment() {
+  sex fun increment() {
     self.value = self.value + 1
   }
 
@@ -104,14 +77,6 @@ const examples: Example[] = [
     return self.value
   }
 }`,
-        output: `✓ Spirit Counter @0.1.0 validated
-  ├─ has: value (Int) = 0
-  ├─ fun: init() lifecycle hook
-  ├─ fun: increment() effectful(Mut)
-  └─ fun: get() -> Int
-
-→ Compiled to WASM: 156 bytes
-→ Effects: Mut inferred`,
     },
 ];
 
@@ -143,6 +108,7 @@ const KEYWORDS = new Set([
     "evolves",
     "exegesis",
     "fun",
+    "sex",
     "return",
     "match",
     "if",
@@ -161,6 +127,7 @@ const KEYWORDS = new Set([
     "mut",
     "let",
     "self",
+    "pub",
 ]);
 
 const TYPES = new Set([
@@ -358,35 +325,194 @@ function useTypingEffect(text: string, speed: number = 20) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// OUTPUT FORMATTING
+// ═══════════════════════════════════════════════════════════════════
+
+interface ASTNode {
+    type: string;
+    name?: string;
+    version?: string;
+    effectful?: boolean;
+    field_type?: string;
+    default_value?: string;
+    params?: string[];
+    return_type?: string;
+    body?: ASTNode[];
+    content?: string;
+}
+
+interface CompilerOutput {
+    success: boolean;
+    ast?: ASTNode[];
+    messages?: string[];
+    metadata?: {
+        version: string;
+        spirit_count: number;
+        gene_count: number;
+        function_count: number;
+        field_count: number;
+        constraint_count: number;
+        source_lines: number;
+    };
+}
+
+function formatCompilerOutput(output: CompilerOutput | null, error: string | null, compileTime: number | null, source: string): string {
+    if (error) {
+        return `✗ Compilation Error\n\n${error}`;
+    }
+
+    if (!output || !output.ast) {
+        return "Waiting for compilation...";
+    }
+
+    const lines: string[] = [];
+    const ast = output.ast;
+    const metadata = output.metadata;
+
+    // Format each top-level node
+    for (const node of ast) {
+        if (node.type === "Spirit") {
+            const versionStr = node.version ? ` @${node.version}` : "";
+            lines.push(`✓ Spirit ${node.name}${versionStr} validated`);
+            formatBody(node.body || [], lines, "  ");
+        } else if (node.type === "Gene") {
+            lines.push(`✓ Gene ${node.name} validated`);
+            formatBody(node.body || [], lines, "  ");
+        } else if (node.type === "Function") {
+            const effectStr = node.effectful ? " (effectful)" : "";
+            const returnStr = node.return_type ? ` -> ${node.return_type}` : "";
+            lines.push(`✓ fun ${node.name}()${returnStr}${effectStr}`);
+        }
+    }
+
+    // Add compilation stats
+    if (metadata) {
+        lines.push("");
+        lines.push(`→ Compiler: DOL v${metadata.version}`);
+        if (compileTime !== null) {
+            lines.push(`→ Compiled in ${compileTime.toFixed(1)}ms`);
+        }
+    }
+
+    // Simulate execution
+    lines.push("");
+    lines.push("─".repeat(40));
+    lines.push("▶ Execution:");
+
+    const execResult = simulateExecution(source, ast);
+    lines.push(...execResult);
+
+    return lines.join("\n");
+}
+
+// Simple DOL execution simulator
+function simulateExecution(source: string, ast: ASTNode[]): string[] {
+    const lines: string[] = [];
+
+    // Find gene and extract info
+    const gene = ast.find(n => n.type === "Gene" || n.type === "Spirit");
+    if (!gene) {
+        lines.push("  (no gene/spirit to execute)");
+        return lines;
+    }
+
+    // Parse initial value from source: "let c = Counter { value: X }"
+    const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
+    let value = initMatch ? parseInt(initMatch[1], 10) : 0;
+
+    // Parse increment expression from source: "self.value = self.value + X"
+    const incrMatch = source.match(/self\.value\s*=\s*self\.value\s*\+\s*(\d+)/);
+    const increment = incrMatch ? parseInt(incrMatch[1], 10) : 1;
+
+    // Count how many times increment is called
+    const callMatches = source.match(/\.increment\(\)/g);
+    const callCount = callMatches ? callMatches.length : 0;
+
+    lines.push(`  ⧬ ${gene.name} instantiated with value: ${value}`);
+
+    for (let i = 0; i < callCount; i++) {
+        const oldValue = value;
+        value += increment;
+        lines.push(`  → increment() called: ${oldValue} + ${increment} = ${value}`);
+    }
+
+    // Check for get() call
+    if (source.includes(".get()")) {
+        lines.push(`  → get() returns: ${value}`);
+    }
+
+    // Check for println
+    if (source.includes("println")) {
+        lines.push(`  📤 Output: ${value}`);
+    }
+
+    lines.push("");
+    lines.push(`✓ Final value: ${value}`);
+
+    return lines;
+}
+
+function formatBody(body: ASTNode[], lines: string[], indent: string) {
+    const lastIdx = body.length - 1;
+    body.forEach((node, i) => {
+        const isLast = i === lastIdx;
+        const prefix = isLast ? "└─" : "├─";
+
+        if (node.type === "Field") {
+            const defaultStr = node.default_value ? ` = ${node.default_value}` : "";
+            lines.push(`${indent}${prefix} has: ${node.name} (${node.field_type})${defaultStr}`);
+        } else if (node.type === "Constraint") {
+            lines.push(`${indent}${prefix} constraint: ${node.name}`);
+        } else if (node.type === "Function") {
+            const effectStr = node.effectful ? " [effectful]" : "";
+            const returnStr = node.return_type ? ` -> ${node.return_type}` : "";
+            lines.push(`${indent}${prefix} fun: ${node.name}()${returnStr}${effectStr}`);
+        } else if (node.type === "Exegesis") {
+            lines.push(`${indent}${prefix} exegesis: "${node.content?.slice(0, 30)}..."`);
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
 export function DOLPlayground() {
     const [activeExample, setActiveExample] = useState(0);
-    const [isCompiling, setIsCompiling] = useState(false);
-    const [showOutput, setShowOutput] = useState(false);
+    const [code, setCode] = useState(examples[0].code);
+    const { compile, status, result, error, compileTime, isReady } = useCompiler();
 
-    const example = examples[activeExample];
+    // Format output from compiler result
+    const formattedOutput = useMemo(() => {
+        if (status === 'idle' || status === 'compiling') return "";
+        return formatCompilerOutput(result as CompilerOutput | null, error, compileTime, code);
+    }, [result, error, compileTime, status, code]);
+
     const { displayed: outputText, isComplete } = useTypingEffect(
-        showOutput ? example.output : "",
+        status === 'success' || status === 'error' ? formattedOutput : "",
         15,
     );
 
-    // Simulate compilation
-    const handleCompile = () => {
-        setIsCompiling(true);
-        setShowOutput(false);
+    // Compile the current code
+    const handleCompile = useCallback(() => {
+        compile(code);
+    }, [compile, code]);
 
-        setTimeout(() => {
-            setIsCompiling(false);
-            setShowOutput(true);
-        }, 800);
-    };
-
-    // Auto-compile on example change
+    // When example tab changes, update the code
     useEffect(() => {
-        handleCompile();
+        setCode(examples[activeExample].code);
     }, [activeExample]);
+
+    // Auto-compile when code changes (debounced) or compiler becomes ready
+    useEffect(() => {
+        if (!isReady) return;
+
+        const timer = setTimeout(() => {
+            handleCompile();
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [code, isReady, handleCompile]);
 
     return (
         <section className="relative py-16 md:py-32 px-4 md:px-6">
@@ -440,20 +566,26 @@ export function DOLPlayground() {
                                     <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                                     <div className="w-3 h-3 rounded-full bg-green-500/50" />
                                     <span className="ml-3 text-xs text-white/40 font-mono">
-                                        {example.name
+                                        {examples[activeExample].name
                                             .toLowerCase()
                                             .replace(" ", "_")}
                                         .dol
                                     </span>
                                 </div>
                                 <span className="text-xs text-[#00ff88]/60 font-mono">
-                                    DOL 2.0
+                                    DOL v0.7.0
                                 </span>
                             </div>
 
-                            {/* Code content */}
-                            <div className="p-4 overflow-x-auto">
-                                <HighlightedCode code={example.code} />
+                            {/* Code editor - editable textarea */}
+                            <div className="relative">
+                                <textarea
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    className="w-full h-[280px] p-4 bg-transparent text-white/90 font-mono text-xs sm:text-sm leading-relaxed resize-none focus:outline-none"
+                                    spellCheck={false}
+                                    style={{ tabSize: 2 }}
+                                />
                             </div>
                         </div>
 
@@ -475,7 +607,7 @@ export function DOLPlayground() {
                                     Compilation Output
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    {isCompiling ? (
+                                    {status === 'compiling' ? (
                                         <motion.div
                                             className="w-2 h-2 rounded-full bg-amber-400"
                                             animate={{ opacity: [1, 0.3, 1] }}
@@ -484,15 +616,19 @@ export function DOLPlayground() {
                                                 repeat: Infinity,
                                             }}
                                         />
-                                    ) : showOutput ? (
+                                    ) : status === 'success' ? (
                                         <div className="w-2 h-2 rounded-full bg-[#00ff88]" />
+                                    ) : status === 'error' ? (
+                                        <div className="w-2 h-2 rounded-full bg-red-500" />
                                     ) : null}
                                     <span className="text-xs text-white/40 font-mono">
-                                        {isCompiling
+                                        {status === 'compiling'
                                             ? "compiling..."
-                                            : showOutput
+                                            : status === 'success'
                                               ? "success"
-                                              : ""}
+                                              : status === 'error'
+                                                ? "error"
+                                                : ""}
                                     </span>
                                 </div>
                             </div>
@@ -500,7 +636,7 @@ export function DOLPlayground() {
                             {/* Output content */}
                             <div className="p-4 min-h-[150px] md:min-h-[200px]">
                                 <AnimatePresence mode="wait">
-                                    {isCompiling ? (
+                                    {status === 'compiling' ? (
                                         <motion.div
                                             key="compiling"
                                             initial={{ opacity: 0 }}
@@ -528,7 +664,9 @@ export function DOLPlayground() {
                                             key="output"
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
-                                            className="text-sm leading-relaxed font-mono text-[#00ff88]/80 whitespace-pre-wrap"
+                                            className={`text-sm leading-relaxed font-mono whitespace-pre-wrap ${
+                                                status === 'error' ? 'text-red-400/80' : 'text-[#00ff88]/80'
+                                            }`}
                                         >
                                             {outputText}
                                             {!isComplete && (
@@ -540,7 +678,9 @@ export function DOLPlayground() {
                                                         duration: 0.5,
                                                         repeat: Infinity,
                                                     }}
-                                                    className="inline-block w-2 h-4 bg-[#00ff88] ml-1"
+                                                    className={`inline-block w-2 h-4 ml-1 ${
+                                                        status === 'error' ? 'bg-red-400' : 'bg-[#00ff88]'
+                                                    }`}
                                                 />
                                             )}
                                         </motion.pre>
