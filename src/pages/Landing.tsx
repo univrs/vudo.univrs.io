@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { ThemeToggle } from "../components/ThemeToggle";
 import { MyceliumBackground } from "../components/MyceliumBackground";
 import { VevePattern } from "../components/VevePattern";
 import { Hero } from "../components/Hero";
@@ -298,8 +297,6 @@ export function Landing() {
     return (
         <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
             <MyceliumBackground nodeCount={50} connectionProbability={0.2} />
-
-            <ThemeToggle />
 
             <main className="relative z-10 pt-14">
                 <Hero />
