@@ -66,15 +66,15 @@ const examples: Example[] = [
   has value: Int = 0
 
   fun init() {
-    self.value = 0
+    this.value = 0
   }
 
   sex fun increment() {
-    self.value = self.value + 1
+    this.value = this.value + 1
   }
 
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 }`,
     },
@@ -117,21 +117,21 @@ spirit MoleculeClassifier @0.1.0 {
   law classification_invariance {
     forall perm: PermutationGroup<N>.
     forall mol: Graph<AtomFeatures>.
-      self.classify(mol.permute(perm))
-        == self.classify(mol)
+      this.classify(mol.permute(perm))
+        == this.classify(mol)
   }
 
   // Classify a molecule graph
   fun classify(mol: Graph<AtomFeatures>) -> String {
-    let features = self.gnn.forward(mol)
-    let pooled = self.global_pool(features)
-    self.predict_class(pooled)
+    let features = this.gnn.forward(mol)
+    let pooled = this.global_pool(features)
+    this.predict_class(pooled)
   }
 
   // S_n-invariant global pooling
   fun global_pool(g: Graph<Array<Float64>>)
     -> Array<Float64> {
-    match self.pooling {
+    match this.pooling {
       "sum" => g.nodes.fold(zeros(), add)
       "mean" => g.nodes.mean()
       "max" => g.nodes.max()
@@ -189,7 +189,7 @@ const KEYWORDS = new Set([
     "exists",
     "mut",
     "let",
-    "self",
+    "this",
     "pub",
 ]);
 
@@ -493,8 +493,8 @@ function simulateExecution(source: string, ast: ASTNode[]): string[] {
     const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
     let value = initMatch ? parseInt(initMatch[1], 10) : 0;
 
-    // Parse increment expression from source: "self.value = self.value + X"
-    const incrMatch = source.match(/self\.value\s*=\s*self\.value\s*\+\s*(\d+)/);
+    // Parse increment expression from source: "this.value = this.value + X"
+    const incrMatch = source.match(/this\.value\s*=\s*this\.value\s*\+\s*(\d+)/);
     const increment = incrMatch ? parseInt(incrMatch[1], 10) : 1;
 
     // Count how many times increment is called
