@@ -125,7 +125,7 @@ enum Token {
     Constraint,
     // Other keywords
     Pub,
-    Self_,
+    This,
     // Literals and identifiers
     Identifier(String),
     StringLiteral(String),
@@ -361,7 +361,7 @@ impl<'a> Lexer<'a> {
                     "constraint" => Token::Constraint,
                     // Other keywords
                     "pub" => Token::Pub,
-                    "self" => Token::Self_,
+                    "this" => Token::This,
                     _ => Token::Identifier(ident),
                 };
                 (token, line, column)
@@ -649,7 +649,7 @@ impl<'a> Parser<'a> {
                         }
                     }
                     Token::Identifier(s) => body.push_str(s),
-                    Token::Self_ => body.push_str("self"),
+                    Token::This => body.push_str("this"),
                     Token::Return => body.push_str("return"),
                     Token::StringLiteral(s) => {
                         body.push('"');
@@ -765,7 +765,7 @@ impl<'a> Parser<'a> {
                         }
                     }
                     Token::Identifier(s) => body.push_str(s),
-                    Token::Self_ => body.push_str("self"),
+                    Token::This => body.push_str("this"),
                     Token::Dot => body.push('.'),
                     Token::Newline => body.push('\n'),
                     _ => body.push(' '),

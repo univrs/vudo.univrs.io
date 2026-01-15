@@ -25,11 +25,11 @@ const examples: Example[] = [
   has value: Int
 
   constraint positive {
-    self.value > 0
+    this.value > 0
   }
 
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 }`,
     },
@@ -66,15 +66,15 @@ const examples: Example[] = [
   has value: Int = 0
 
   fun init() {
-    self.value = 0
+    this.value = 0
   }
 
   sex fun increment() {
-    self.value = self.value + 1
+    this.value = this.value + 1
   }
 
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 }`,
     },
@@ -126,7 +126,7 @@ const KEYWORDS = new Set([
     "has",
     "mut",
     "let",
-    "self",
+    "this",
     "pub",
 ]);
 
@@ -420,8 +420,8 @@ function simulateExecution(source: string, ast: ASTNode[]): string[] {
     const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
     let value = initMatch ? parseInt(initMatch[1], 10) : 0;
 
-    // Parse increment expression from source: "self.value = self.value + X"
-    const incrMatch = source.match(/self\.value\s*=\s*self\.value\s*\+\s*(\d+)/);
+    // Parse increment expression from source: "this.value = this.value + X"
+    const incrMatch = source.match(/this\.value\s*=\s*this\.value\s*\+\s*(\d+)/);
     const increment = incrMatch ? parseInt(incrMatch[1], 10) : 1;
 
     // Count how many times increment is called
