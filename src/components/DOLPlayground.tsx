@@ -25,11 +25,11 @@ const examples: Example[] = [
   has value: Int
 
   constraint positive {
-    self.value > 0
+    this.value > 0
   }
 
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 }`,
     },
@@ -89,8 +89,8 @@ gene MessagePassingLayer<NodeDim, HiddenDim> {
   law equivariance {
     forall perm: PermutationGroup<N>.
     forall g: Graph<Array<Float64>>.
-      self.forward(g.permute(perm))
-        == self.forward(g).permute(perm)
+      this.forward(g.permute(perm))
+        == this.forward(g).permute(perm)
   }
 
   fun forward(graph: Graph<Array<Float64>>)
@@ -98,9 +98,9 @@ gene MessagePassingLayer<NodeDim, HiddenDim> {
     // Message-Aggregate-Update
     graph.nodes.map(|i| {
       let msgs = graph.neighbors(i)
-        .map(|j| self.message(j, i))
-      let agg = self.aggregate(msgs)
-      self.update(graph.node(i), agg)
+        .map(|j| this.message(j, i))
+      let agg = this.aggregate(msgs)
+      this.update(graph.node(i), agg)
     })
   }
 }`,
