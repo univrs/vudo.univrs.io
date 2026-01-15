@@ -124,6 +124,8 @@ const KEYWORDS = new Set([
     "law",
     "type",
     "has",
+    "forall",
+    "exists",
     "mut",
     "let",
     "this",
@@ -149,6 +151,16 @@ const TYPES = new Set([
     "Any",
     "List",
     "Self",
+    // GDL (Geometric Deep Learning) types
+    "Array",
+    "Tuple",
+    "Option",
+    "SparseMatrix",
+    "Graph",
+    "PermutationGroup",
+    "TranslationGroup",
+    "SymmetryGroup",
+    "Tensor",
 ]);
 
 const OPERATORS = [
