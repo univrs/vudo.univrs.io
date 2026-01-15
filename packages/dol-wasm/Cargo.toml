@@ -1,6 +1,6 @@
 [package]
 name = "dol-wasm"
-version = "0.7.0"
+version = "0.7.2"
 edition = "2021"
 description = "DOL v0.7.0 language compiler targeting WebAssembly"
 authors = ["VUDO Team"]
