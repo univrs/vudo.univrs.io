@@ -78,67 +78,6 @@ const examples: Example[] = [
   }
 }`,
     },
-    {
-        name: "GNN Layer",
-        code: `// Graph Neural Network with S_n equivariance
-gene MessagePassingLayer<NodeDim, HiddenDim> {
-  has weights: Array<Float64>
-  has aggregation: String = "sum"
-
-  // Permutation equivariance law
-  law equivariance {
-    forall perm: PermutationGroup<N>.
-    forall g: Graph<Array<Float64>>.
-      this.forward(g.permute(perm))
-        == this.forward(g).permute(perm)
-  }
-
-  fun forward(graph: Graph<Array<Float64>>)
-    -> Graph<Array<Float64>> {
-    // Message-Aggregate-Update
-    graph.nodes.map(|i| {
-      let msgs = graph.neighbors(i)
-        .map(|j| this.message(j, i))
-      let agg = this.aggregate(msgs)
-      this.update(graph.node(i), agg)
-    })
-  }
-}`,
-    },
-    {
-        name: "GDL Spirit",
-        code: `// Molecular classifier spirit using GDL
-spirit MoleculeClassifier @0.1.0 {
-  has gnn: MessagePassingLayer<128, 256>
-  has pooling: String = "sum"
-  has classes: List<String>
-
-  // Invariance: class unchanged by atom reordering
-  law classification_invariance {
-    forall perm: PermutationGroup<N>.
-    forall mol: Graph<AtomFeatures>.
-      this.classify(mol.permute(perm))
-        == this.classify(mol)
-  }
-
-  // Classify a molecule graph
-  fun classify(mol: Graph<AtomFeatures>) -> String {
-    let features = this.gnn.forward(mol)
-    let pooled = this.global_pool(features)
-    this.predict_class(pooled)
-  }
-
-  // S_n-invariant global pooling
-  fun global_pool(g: Graph<Array<Float64>>)
-    -> Array<Float64> {
-    match this.pooling {
-      "sum" => g.nodes.fold(zeros(), add)
-      "mean" => g.nodes.mean()
-      "max" => g.nodes.max()
-    }
-  }
-}`,
-    },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
