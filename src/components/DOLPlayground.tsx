@@ -78,6 +78,33 @@ const examples: Example[] = [
   }
 }`,
     },
+    {
+        name: "GNN Layer",
+        code: `// Graph Neural Network with S_n equivariance
+gene MessagePassingLayer<NodeDim, HiddenDim> {
+  has weights: Array<Float64>
+  has aggregation: String = "sum"
+
+  // Permutation equivariance law
+  law equivariance {
+    forall perm: PermutationGroup<N>.
+    forall g: Graph<Array<Float64>>.
+      self.forward(g.permute(perm))
+        == self.forward(g).permute(perm)
+  }
+
+  fun forward(graph: Graph<Array<Float64>>)
+    -> Graph<Array<Float64>> {
+    // Message-Aggregate-Update
+    graph.nodes.map(|i| {
+      let msgs = graph.neighbors(i)
+        .map(|j| self.message(j, i))
+      let agg = self.aggregate(msgs)
+      self.update(graph.node(i), agg)
+    })
+  }
+}`,
+    },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -124,6 +151,8 @@ const KEYWORDS = new Set([
     "law",
     "type",
     "has",
+    "forall",
+    "exists",
     "mut",
     "let",
     "self",
@@ -149,6 +178,16 @@ const TYPES = new Set([
     "Any",
     "List",
     "Self",
+    // GDL (Geometric Deep Learning) types
+    "Array",
+    "Tuple",
+    "Option",
+    "SparseMatrix",
+    "Graph",
+    "PermutationGroup",
+    "TranslationGroup",
+    "SymmetryGroup",
+    "Tensor",
 ]);
 
 const OPERATORS = [
