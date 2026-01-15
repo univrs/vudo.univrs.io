@@ -7,18 +7,18 @@ interface DOLEditorProps {
   onChange: (value: string) => void;
 }
 
-const DEFAULT_CODE = `// DOL v0.7.0 - Define a Gene with fields and methods
+const DEFAULT_CODE = `// DOL v0.7.2 - Define a Gene with fields and methods
 gene Counter {
   has value: Int = 0
 
   // Pure function - no side effects
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 
   // Effectful function - mutates state
   sex fun increment() {
-    self.value = self.value + 1
+    this.value = this.value + 1
   }
 }
 

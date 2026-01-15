@@ -142,8 +142,8 @@ export function simulateExecution(ast: object, source?: string): ExecutionResult
       initialValue = parseInt(initMatch[1], 10);
     }
 
-    // Parse increment: "self.value = self.value + X" or "self.value + X"
-    const incrMatch = source.match(/self\.value\s*(?:=\s*self\.value\s*)?\+\s*(\d+)/);
+    // Parse increment: "this.value = this.value + X" or "this.value + X" (also supports legacy self.)
+    const incrMatch = source.match(/(?:this|self)\.value\s*(?:=\s*(?:this|self)\.value\s*)?\+\s*(\d+)/);
     if (incrMatch) {
       incrementAmount = parseInt(incrMatch[1], 10);
     }

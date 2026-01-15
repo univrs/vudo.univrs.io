@@ -113,15 +113,15 @@ function IntroSection({ onNext }: { onNext: () => void }) {
     has component_count: Int
 
     constraint positive_output {
-        self.total_output_kwh >= 0.0
+        this.total_output_kwh >= 0.0
     }
 
     fun system_eroei() -> Float {
-        return self.total_output_kwh / self.total_input_kwh
+        return this.total_output_kwh / this.total_input_kwh
     }
 
     fun is_viable() -> Bool {
-        return self.system_eroei() >= 7.0
+        return this.system_eroei() >= 7.0
     }
 }`}
       />

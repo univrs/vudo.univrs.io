@@ -11,11 +11,11 @@ gene Counter {
   has value: Int
 
   fun get() -> Int {
-    return self.value
+    return this.value
   }
 
   fun increment() {
-    self.value = self.value + 1
+    this.value = this.value + 1
   }
 }
 
