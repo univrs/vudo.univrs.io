@@ -105,6 +105,40 @@ gene MessagePassingLayer<NodeDim, HiddenDim> {
   }
 }`,
     },
+    {
+        name: "GDL Spirit",
+        code: `// Molecular classifier spirit using GDL
+spirit MoleculeClassifier @0.1.0 {
+  has gnn: MessagePassingLayer<128, 256>
+  has pooling: String = "sum"
+  has classes: List<String>
+
+  // Invariance: class unchanged by atom reordering
+  law classification_invariance {
+    forall perm: PermutationGroup<N>.
+    forall mol: Graph<AtomFeatures>.
+      self.classify(mol.permute(perm))
+        == self.classify(mol)
+  }
+
+  // Classify a molecule graph
+  fun classify(mol: Graph<AtomFeatures>) -> String {
+    let features = self.gnn.forward(mol)
+    let pooled = self.global_pool(features)
+    self.predict_class(pooled)
+  }
+
+  // S_n-invariant global pooling
+  fun global_pool(g: Graph<Array<Float64>>)
+    -> Array<Float64> {
+    match self.pooling {
+      "sum" => g.nodes.fold(zeros(), add)
+      "mean" => g.nodes.mean()
+      "max" => g.nodes.max()
+    }
+  }
+}`,
+    },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
