@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOL-WASM Browser Test</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 { color: #569cd6; }
+        h2 { color: #4ec9b0; margin-top: 30px; }
+        .test-section {
+            background: #252526;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status.pass { background: #2d5a2d; color: #4ec9b0; }
+        .status.fail { background: #5a2d2d; color: #f48771; }
+        .status.pending { background: #5a5a2d; color: #dcdcaa; }
+        pre {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid #3c3c3c;
+        }
+        code { color: #ce9178; }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #9cdcfe; }
+        #output { white-space: pre-wrap; }
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3c3c3c;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover { background: #1177bb; }
+    </style>
+</head>
+<body>
+    <h1>DOL-WASM Browser Test</h1>
+    <p>Testing the unified metadol compiler in the browser via WebAssembly.</p>
+
+    <div class="test-section">
+        <h2>1. Module Loading</h2>
+        <div id="load-status" class="status pending">Loading...</div>
+        <pre id="load-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Parse DOL to AST (compile_dol)</h2>
+        <div id="parse-status" class="status pending">Pending</div>
+        <pre id="parse-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Validate DOL Syntax (validate_dol)</h2>
+        <div id="validate-status" class="status pending">Pending</div>
+        <pre id="validate-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Compile DOL to WASM Bytecode (compile_to_wasm)</h2>
+        <div id="codegen-status" class="status pending">Pending</div>
+        <pre id="codegen-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Interactive Test</h2>
+        <textarea id="dol-input">// WASM codegen requires function declarations!
+// Genes/traits/constraints are structural - they parse but don't compile to WASM.
+
+// This WILL compile to WASM (DOL uses 'fun' keyword):
+fun add(a: Int64, b: Int64) -> Int64 {
+    return a + b
+}</textarea>
+        <br>
+        <button onclick="testParse()">Parse to AST</button>
+        <button onclick="testValidate()">Validate Syntax</button>
+        <button onclick="testCompileWasm()">Compile to WASM</button>
+        <pre id="interactive-output"></pre>
+    </div>
+
+    <script type="module">
+        import init, {
+            compile_dol,
+            validate_dol,
+            compile_to_wasm,
+            compile_to_wasm_bytes,
+            get_version
+        } from './pkg/dol_wasm.js';
+
+        // Make functions available globally for button onclick
+        window.dolWasm = { compile_dol, validate_dol, compile_to_wasm, compile_to_wasm_bytes };
+
+        function setStatus(id, pass, message) {
+            const el = document.getElementById(id);
+            el.className = 'status ' + (pass ? 'pass' : 'fail');
+            el.textContent = pass ? 'PASS' : 'FAIL';
+        }
+
+        function log(id, message, type = '') {
+            const el = document.getElementById(id);
+            if (type === 'success') message = `<span class="success">${message}</span>`;
+            else if (type === 'error') message = `<span class="error">${message}</span>`;
+            else if (type === 'info') message = `<span class="info">${message}</span>`;
+            el.innerHTML += message + '\n';
+        }
+
+        async function runTests() {
+            try {
+                // Test 1: Load module
+                log('load-output', 'Initializing WASM module...', 'info');
+                await init();
+                const version = get_version();
+                log('load-output', `Module loaded successfully!`, 'success');
+                log('load-output', `Version: ${version}`, 'info');
+                setStatus('load-status', true);
+            } catch (e) {
+                log('load-output', `Failed to load: ${e.message}`, 'error');
+                setStatus('load-status', false);
+                return;
+            }
+
+            // Test source code
+            const testSource = `
+gene container.exists {
+    container has identity
+    container has created_at
+}
+
+exegesis {
+    A container exists with identity and creation timestamp.
+}`;
+
+            // Test 2: Parse to AST
+            try {
+                log('parse-output', 'Parsing DOL source...', 'info');
+                const result = compile_dol(testSource);
+                if (result.success) {
+                    log('parse-output', `Parsed ${result.ast.length} declaration(s)`, 'success');
+                    log('parse-output', `Metadata: ${JSON.stringify(result.metadata, null, 2)}`, 'info');
+                    log('parse-output', `First declaration: ${result.ast[0].type} "${result.ast[0].name}"`, 'info');
+                    setStatus('parse-status', true);
+                } else {
+                    log('parse-output', `Parse failed: ${result.errors[0]?.message}`, 'error');
+                    setStatus('parse-status', false);
+                }
+            } catch (e) {
+                log('parse-output', `Exception: ${e.message}`, 'error');
+                setStatus('parse-status', false);
+            }
+
+            // Test 3: Validate syntax
+            try {
+                log('validate-output', 'Validating DOL syntax...', 'info');
+                const valid = validate_dol(testSource);
+                log('validate-output', `Valid: ${valid}`, valid ? 'success' : 'error');
+
+                // Test invalid syntax
+                const invalidSource = 'gene Unclosed { has value';
+                const invalidResult = validate_dol(invalidSource);
+                log('validate-output', `Invalid syntax correctly rejected: ${!invalidResult}`, !invalidResult ? 'success' : 'error');
+
+                setStatus('validate-status', valid && !invalidResult);
+            } catch (e) {
+                log('validate-output', `Exception: ${e.message}`, 'error');
+                setStatus('validate-status', false);
+            }
+
+            // Test 4: Compile to WASM bytecode
+            try {
+                log('codegen-output', 'Compiling DOL to WASM bytecode...', 'info');
+
+                // DOL with a function (required for WASM codegen)
+                // DOL uses 'fun' keyword for function declarations
+                const funcSource = `
+fun add(a: Int64, b: Int64) -> Int64 {
+    return a + b
+}`;
+
+                const result = compile_to_wasm(funcSource);
+                if (result.success && result.bytecode) {
+                    log('codegen-output', `Bytecode generated: ${result.bytecode_size} bytes`, 'success');
+
+                    // Verify WASM magic number
+                    const magic = result.bytecode.slice(0, 4);
+                    const isValidWasm = magic[0] === 0 && magic[1] === 97 && magic[2] === 115 && magic[3] === 109;
+                    log('codegen-output', `Valid WASM magic number: ${isValidWasm}`, isValidWasm ? 'success' : 'error');
+
+                    // Try to instantiate it
+                    try {
+                        const wasmModule = await WebAssembly.compile(new Uint8Array(result.bytecode));
+                        log('codegen-output', 'WebAssembly.compile() succeeded!', 'success');
+
+                        const instance = await WebAssembly.instantiate(wasmModule);
+                        log('codegen-output', 'WebAssembly.instantiate() succeeded!', 'success');
+
+                        // Check for exported function
+                        if (instance.exports.add) {
+                            const sum = instance.exports.add(BigInt(40), BigInt(2));
+                            log('codegen-output', `Called add(40, 2) = ${sum}`, 'success');
+                            setStatus('codegen-status', sum === BigInt(42));
+                        } else {
+                            log('codegen-output', `Exports: ${Object.keys(instance.exports).join(', ')}`, 'info');
+                            setStatus('codegen-status', true);
+                        }
+                    } catch (wasmErr) {
+                        log('codegen-output', `WebAssembly error: ${wasmErr.message}`, 'error');
+                        setStatus('codegen-status', false);
+                    }
+                } else {
+                    log('codegen-output', `Codegen result: ${result.error || 'Unknown error'}`, 'error');
+                    // This is expected for non-function declarations
+                    log('codegen-output', 'Note: WASM codegen requires function declarations', 'info');
+                    setStatus('codegen-status', false);
+                }
+            } catch (e) {
+                log('codegen-output', `Exception: ${e.message}`, 'error');
+                setStatus('codegen-status', false);
+            }
+        }
+
+        // Interactive test functions
+        window.testParse = function() {
+            const source = document.getElementById('dol-input').value;
+            const output = document.getElementById('interactive-output');
+            try {
+                const result = window.dolWasm.compile_dol(source);
+                output.innerHTML = '<span class="info">Parse Result:</span>\n' +
+                    JSON.stringify(result, null, 2);
+            } catch (e) {
+                output.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+            }
+        };
+
+        window.testValidate = function() {
+            const source = document.getElementById('dol-input').value;
+            const output = document.getElementById('interactive-output');
+            try {
+                const valid = window.dolWasm.validate_dol(source);
+                output.innerHTML = valid ?
+                    '<span class="success">Syntax is valid!</span>' :
+                    '<span class="error">Syntax is invalid</span>';
+            } catch (e) {
+                output.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+            }
+        };
+
+        window.testCompileWasm = function() {
+            const source = document.getElementById('dol-input').value;
+            const output = document.getElementById('interactive-output');
+            try {
+                const result = window.dolWasm.compile_to_wasm(source);
+                if (result.success) {
+                    output.innerHTML = '<span class="success">WASM bytecode generated!</span>\n' +
+                        `Size: ${result.bytecode_size} bytes\n` +
+                        `First 16 bytes: [${result.bytecode.slice(0, 16).join(', ')}]`;
+                } else {
+                    output.innerHTML = '<span class="error">Compilation failed:</span>\n' + result.error;
+                }
+            } catch (e) {
+                output.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+            }
+        };
+
+        // Run tests on load
+        runTests();
+    </script>
+</body>
+</html>
