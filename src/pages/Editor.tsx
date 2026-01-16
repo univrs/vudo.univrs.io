@@ -6,24 +6,36 @@ import { useCompiler, CompileStatus as HookCompileStatus } from '../hooks/useCom
 import { useIdentity } from '../hooks/useIdentity';
 import { simulateExecution, ExecutionResult } from '../lib/sandbox';
 
-const DEFAULT_CODE = `// Define a Gene (like a class/struct with methods)
+const DEFAULT_CODE = `// Define a Gene (ontological data structure)
 gene Counter {
-  has value: Int
-
-  fun get() -> Int {
-    return this.value
-  }
-
-  fun increment() {
-    this.value = this.value + 1
-  }
+    counter has value
+    counter has timestamp
 }
 
-// Instantiate and use the Gene
-fun main() {
-  let c = Counter { value: 0 }
-  c.increment()
-  println(c.get())
+exegesis {
+    A Counter gene tracks a numeric value and when it was updated.
+}
+
+// Define a pure function (compiles to WASM)
+fun add(a: Int64, b: Int64) -> Int64 {
+    return a + b
+}
+
+// Define a function with side effects
+sex fun log_event(message: String) {
+    emit log_event(message)
+}
+
+// Define a trait (behavioral contract)
+trait Incrementable {
+    incrementable is stateful
+    incrementable requires identity
+}
+
+// Define a system (coordinated behavior)
+system CounterSystem {
+    system uses Counter
+    system matches Incrementable
 }`;
 
 type CompileStatus = 'ready' | 'compiling' | 'success' | 'error';
@@ -88,41 +100,81 @@ export function Editor() {
           }
         }
 
-        // Show AST summary
+        // Show AST summary (handles metadol AST format)
         if (result.ast && Array.isArray(result.ast)) {
           lines.push('');
           lines.push('AST Structure:');
           for (const node of result.ast) {
-            if (node.type === 'Spirit') {
-              lines.push(`├─ spirit ${node.name}`);
-              if (node.body) {
-                for (let i = 0; i < node.body.length; i++) {
-                  const child = node.body[i];
-                  const prefix = i === node.body.length - 1 ? '│  └─' : '│  ├─';
-                  if (child.type === 'Function') {
-                    lines.push(`${prefix} fun ${child.name}()`);
-                  } else if (child.type === 'State') {
-                    lines.push(`${prefix} state ${child.name}`);
-                  } else if (child.type === 'Comment') {
-                    lines.push(`${prefix} // comment`);
-                  }
+            const nodeType = node.type?.toLowerCase() || 'unknown';
+            const nodeName = node.name || 'anonymous';
+
+            // Handle different declaration types from metadol
+            if (nodeType === 'gene') {
+              lines.push(`├─ gene ${nodeName}`);
+              const statements = node.statements || node.body || [];
+              for (let i = 0; i < statements.length; i++) {
+                const stmt = statements[i];
+                const prefix = i === statements.length - 1 ? '│  └─' : '│  ├─';
+                if (stmt.kind === 'Has' || stmt.type === 'Has') {
+                  lines.push(`${prefix} ${stmt.subject || ''} has ${stmt.property || stmt.name || ''}`);
+                } else if (stmt.kind === 'HasField' || stmt.type === 'HasField') {
+                  lines.push(`${prefix} has ${stmt.name || ''}: ${stmt.field_type || ''}`);
+                } else if (stmt.kind === 'Is' || stmt.type === 'Is') {
+                  lines.push(`${prefix} ${stmt.subject || ''} is ${stmt.state || ''}`);
                 }
               }
-            } else if (node.type === 'Gene') {
-              lines.push(`├─ gene ${node.name}`);
-              if (node.body) {
-                for (let i = 0; i < node.body.length; i++) {
-                  const child = node.body[i];
-                  const prefix = i === node.body.length - 1 ? '│  └─' : '│  ├─';
-                  if (child.type === 'Function') {
-                    lines.push(`${prefix} fun ${child.name}()`);
-                  } else if (child.type === 'Field') {
-                    lines.push(`${prefix} has ${child.name}`);
-                  }
+            } else if (nodeType === 'trait') {
+              lines.push(`├─ trait ${nodeName}`);
+              const statements = node.statements || node.body || [];
+              for (let i = 0; i < statements.length; i++) {
+                const stmt = statements[i];
+                const prefix = i === statements.length - 1 ? '│  └─' : '│  ├─';
+                if (stmt.kind === 'Is' || stmt.type === 'Is') {
+                  lines.push(`${prefix} ${stmt.subject || ''} is ${stmt.state || ''}`);
+                } else if (stmt.kind === 'Requires' || stmt.type === 'Requires') {
+                  lines.push(`${prefix} ${stmt.subject || ''} requires ${stmt.requirement || ''}`);
                 }
               }
-            } else if (node.type === 'Function') {
-              lines.push(`├─ fun ${node.name}()`);
+            } else if (nodeType === 'constraint') {
+              lines.push(`├─ constraint ${nodeName}`);
+              const statements = node.statements || node.body || [];
+              for (let i = 0; i < statements.length; i++) {
+                const stmt = statements[i];
+                const prefix = i === statements.length - 1 ? '│  └─' : '│  ├─';
+                if (stmt.kind === 'Never' || stmt.type === 'Never') {
+                  lines.push(`${prefix} never ${stmt.condition || ''}`);
+                } else if (stmt.kind === 'Requires' || stmt.type === 'Requires') {
+                  lines.push(`${prefix} requires ${stmt.requirement || ''}`);
+                }
+              }
+            } else if (nodeType === 'system') {
+              lines.push(`├─ system ${nodeName}`);
+              const statements = node.statements || node.body || [];
+              for (let i = 0; i < statements.length; i++) {
+                const stmt = statements[i];
+                const prefix = i === statements.length - 1 ? '│  └─' : '│  ├─';
+                if (stmt.kind === 'Uses' || stmt.type === 'Uses') {
+                  lines.push(`${prefix} uses ${stmt.target || stmt.name || ''}`);
+                } else if (stmt.kind === 'Matches' || stmt.type === 'Matches') {
+                  lines.push(`${prefix} matches ${stmt.pattern || stmt.name || ''}`);
+                } else if (stmt.kind === 'Emits' || stmt.type === 'Emits') {
+                  lines.push(`${prefix} emits ${stmt.event || stmt.name || ''}`);
+                }
+              }
+            } else if (nodeType === 'function') {
+              const purity = node.purity === 'SideEffect' ? 'sex fun' : 'fun';
+              const params = node.params?.map((p: any) => `${p.name}: ${p.param_type}`).join(', ') || '';
+              const retType = node.return_type ? ` -> ${node.return_type}` : '';
+              lines.push(`├─ ${purity} ${nodeName}(${params})${retType}`);
+            } else if (nodeType === 'spirit') {
+              lines.push(`├─ spirit ${nodeName}`);
+            } else {
+              lines.push(`├─ ${nodeType} ${nodeName}`);
+            }
+
+            // Show exegesis if present
+            if (node.exegesis) {
+              lines.push(`│  └─ exegesis: "${node.exegesis.slice(0, 50)}${node.exegesis.length > 50 ? '...' : ''}"`);
             }
           }
         }
