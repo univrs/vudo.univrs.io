@@ -33,9 +33,10 @@ trait Incrementable {
 }
 
 // Define a system (coordinated behavior)
-system CounterSystem {
-    system uses Counter
-    system matches Incrementable
+system counter.system @0.1.0 {
+    requires Counter >= 0.1.0
+    uses Incrementable
+    counterSystem has active_state
 }`;
 
 type CompileStatus = 'ready' | 'compiling' | 'success' | 'error';
@@ -149,22 +150,37 @@ export function Editor() {
               }
             } else if (nodeType === 'system') {
               lines.push(`├─ system ${nodeName}`);
+              // Show requirements if present
+              if (node.requirements && node.requirements.length > 0) {
+                for (const req of node.requirements) {
+                  lines.push(`│  ├─ requires ${req.name || req.requirement || ''} ${req.version_constraint || ''}`);
+                }
+              }
               const statements = node.statements || node.body || [];
               for (let i = 0; i < statements.length; i++) {
                 const stmt = statements[i];
                 const prefix = i === statements.length - 1 ? '│  └─' : '│  ├─';
                 if (stmt.kind === 'Uses' || stmt.type === 'Uses') {
-                  lines.push(`${prefix} uses ${stmt.target || stmt.name || ''}`);
+                  lines.push(`${prefix} uses ${stmt.reference || stmt.target || stmt.name || ''}`);
                 } else if (stmt.kind === 'Matches' || stmt.type === 'Matches') {
                   lines.push(`${prefix} matches ${stmt.pattern || stmt.name || ''}`);
                 } else if (stmt.kind === 'Emits' || stmt.type === 'Emits') {
                   lines.push(`${prefix} emits ${stmt.event || stmt.name || ''}`);
+                } else if (stmt.kind === 'Has' || stmt.type === 'Has') {
+                  lines.push(`${prefix} ${stmt.subject || ''} has ${stmt.property || ''}`);
                 }
               }
             } else if (nodeType === 'function') {
               const purity = node.purity === 'SideEffect' ? 'sex fun' : 'fun';
-              const params = node.params?.map((p: any) => `${p.name}: ${p.param_type}`).join(', ') || '';
-              const retType = node.return_type ? ` -> ${node.return_type}` : '';
+              const formatType = (t: any): string => {
+                if (!t) return '';
+                if (typeof t === 'string') return t;
+                if (t.Named) return t.Named;
+                if (t.name) return t.name;
+                return String(t);
+              };
+              const params = node.params?.map((p: any) => `${p.name}: ${formatType(p.param_type)}`).join(', ') || '';
+              const retType = node.return_type ? ` -> ${formatType(node.return_type)}` : '';
               lines.push(`├─ ${purity} ${nodeName}(${params})${retType}`);
             } else if (nodeType === 'spirit') {
               lines.push(`├─ spirit ${nodeName}`);
@@ -206,6 +222,23 @@ export function Editor() {
           } else {
             lines.push('✗ Execution failed:');
             lines.push(executionResult.error || 'Unknown error');
+          }
+        }
+      } else {
+        // Compilation failed - show errors
+        lines.push('✗ Compilation failed');
+        lines.push('');
+        if (result.errors && result.errors.length > 0) {
+          lines.push('Errors:');
+          for (const err of result.errors) {
+            if (typeof err === 'string') {
+              lines.push(`  • ${err}`);
+            } else if (err.message) {
+              const location = err.line ? ` (line ${err.line}${err.column ? `:${err.column}` : ''})` : '';
+              lines.push(`  • ${err.message}${location}`);
+            } else {
+              lines.push(`  • ${JSON.stringify(err)}`);
+            }
           }
         }
       }
