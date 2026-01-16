@@ -230,6 +230,17 @@ export function Editor() {
     compiler.compile(code);
   }, [compiler, code]);
 
+  // Auto-compile on page load when compiler is ready
+  useEffect(() => {
+    if (compiler.isReady && compiler.status === 'idle') {
+      // Small delay to ensure WASM is fully initialized
+      const timer = setTimeout(() => {
+        compiler.compile(code);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [compiler.isReady]); // Only run once when compiler becomes ready
+
   // Keyboard shortcut: Ctrl+Enter to compile
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
