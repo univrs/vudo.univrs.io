@@ -21,122 +21,59 @@ interface Example {
 const examples: Example[] = [
     {
         name: "Gene",
-        code: `gene ProcessId {
-  has value: Int
+        code: `gene Counter {
+    counter has value
+    counter has timestamp
+}
 
-  constraint positive {
-    this.value > 0
-  }
-
-  fun get() -> Int {
-    return this.value
-  }
+exegesis {
+    A simple counter gene with value and timestamp.
 }`,
     },
     {
-        name: "Pipeline",
-        code: `gene Calculator {
-  fun transform(x: Int) -> Int {
-    x
-      |> double
-      >> increment
-      |> square
-  }
-
-  fun double(n: Int) -> Int {
-    return n * 2
-  }
+        name: "Function",
+        code: `fun add(a: Int64, b: Int64) -> Int64 {
+    return a + b
 }`,
     },
     {
-        name: "Pattern Match",
-        code: `gene Classifier {
-  fun classify(n: Int) -> String {
-    match n {
-      0 => "zero"
-      n if n > 0 => "positive"
-      _ => "negative"
-    }
-  }
+        name: "Side Effect",
+        code: `sex fun log_message(msg: String) {
+    print(msg)
 }`,
     },
     {
-        name: "Spirit",
-        code: `spirit Counter @0.1.0 {
-  has value: Int = 0
+        name: "System",
+        code: `system Counter @ 0.1.0 {
+    requires base >= 0.0.1
+    all counters is tracked
+    each counter has identity
+}
 
-  fun init() {
-    this.value = 0
-  }
-
-  sex fun increment() {
-    this.value = this.value + 1
-  }
-
-  fun get() -> Int {
-    return this.value
-  }
+exegesis {
+    A counter system that tracks all counter instances.
 }`,
     },
     {
-        name: "GNN Layer",
-        code: `// Graph Neural Network with S_n equivariance
-gene MessagePassingLayer<NodeDim, HiddenDim> {
-  has weights: Array<Float64>
-  has aggregation: String = "sum"
+        name: "Trait",
+        code: `trait Identifiable {
+    entity has identity
+    identity is unique
+}
 
-  // Permutation equivariance law
-  law equivariance {
-    forall perm: PermutationGroup<N>.
-    forall g: Graph<Array<Float64>>.
-      this.forward(g.permute(perm))
-        == this.forward(g).permute(perm)
-  }
-
-  fun forward(graph: Graph<Array<Float64>>)
-    -> Graph<Array<Float64>> {
-    // Message-Aggregate-Update
-    graph.nodes.map(|i| {
-      let msgs = graph.neighbors(i)
-        .map(|j| this.message(j, i))
-      let agg = this.aggregate(msgs)
-      this.update(graph.node(i), agg)
-    })
-  }
+exegesis {
+    Trait for entities that have unique identity.
 }`,
     },
     {
-        name: "GDL Spirit",
-        code: `// Molecular classifier spirit using GDL
-spirit MoleculeClassifier @0.1.0 {
-  has gnn: MessagePassingLayer<128, 256>
-  has pooling: String = "sum"
-  has classes: List<String>
+        name: "Constraint",
+        code: `constraint Positive {
+    value is positive
+    value never negative
+}
 
-  // Invariance: class unchanged by atom reordering
-  law classification_invariance {
-    forall perm: PermutationGroup<N>.
-    forall mol: Graph<AtomFeatures>.
-      this.classify(mol.permute(perm))
-        == this.classify(mol)
-  }
-
-  // Classify a molecule graph
-  fun classify(mol: Graph<AtomFeatures>) -> String {
-    let features = this.gnn.forward(mol)
-    let pooled = this.global_pool(features)
-    this.predict_class(pooled)
-  }
-
-  // S_n-invariant global pooling
-  fun global_pool(g: Graph<Array<Float64>>)
-    -> Array<Float64> {
-    match this.pooling {
-      "sum" => g.nodes.fold(zeros(), add)
-      "mean" => g.nodes.mean()
-      "max" => g.nodes.max()
-    }
-  }
+exegesis {
+    Ensures values are always positive.
 }`,
     },
 ];
@@ -398,44 +335,68 @@ function useTypingEffect(text: string, speed: number = 20) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// OUTPUT FORMATTING
+// OUTPUT FORMATTING (metadol AST format)
 // ═══════════════════════════════════════════════════════════════════
+
+// metadol AST types
+interface StatementNode {
+    kind: string;
+    subject?: string;
+    property?: string;
+    state?: string;
+    name?: string;
+    field_type?: string;
+    default_value?: string;
+    quantifier?: string;
+    phrase?: string;
+}
 
 interface ASTNode {
     type: string;
     name?: string;
     version?: string;
-    effectful?: boolean;
-    field_type?: string;
-    default_value?: string;
-    params?: string[];
+    visibility?: string;
+    purity?: string;
+    params?: { name: string; param_type: string }[];
     return_type?: string;
-    body?: ASTNode[];
-    content?: string;
+    statements?: StatementNode[];
+    exegesis?: string;
+    line?: number;
 }
 
 interface CompilerOutput {
     success: boolean;
     ast?: ASTNode[];
-    messages?: string[];
+    errors?: { message: string; line: number; column: number }[];
+    warnings?: string[];
     metadata?: {
         version: string;
-        spirit_count: number;
         gene_count: number;
-        function_count: number;
-        field_count: number;
+        trait_count: number;
         constraint_count: number;
+        system_count: number;
+        function_count: number;
         source_lines: number;
     };
 }
 
-function formatCompilerOutput(output: CompilerOutput | null, error: string | null, compileTime: number | null, source: string): string {
+function formatCompilerOutput(output: CompilerOutput | null, error: string | null, compileTime: number | null, _source: string): string {
     if (error) {
         return `✗ Compilation Error\n\n${error}`;
     }
 
-    if (!output || !output.ast) {
+    if (!output) {
         return "Waiting for compilation...";
+    }
+
+    // Handle parse errors
+    if (!output.success && output.errors && output.errors.length > 0) {
+        const err = output.errors[0];
+        return `✗ Parse Error (line ${err.line}, col ${err.column})\n\n${err.message}`;
+    }
+
+    if (!output.ast || output.ast.length === 0) {
+        return "✗ No declarations found";
     }
 
     const lines: string[] = [];
@@ -444,104 +405,100 @@ function formatCompilerOutput(output: CompilerOutput | null, error: string | nul
 
     // Format each top-level node
     for (const node of ast) {
-        if (node.type === "Spirit") {
-            const versionStr = node.version ? ` @${node.version}` : "";
-            lines.push(`✓ Spirit ${node.name}${versionStr} validated`);
-            formatBody(node.body || [], lines, "  ");
-        } else if (node.type === "Gene") {
-            lines.push(`✓ Gene ${node.name} validated`);
-            formatBody(node.body || [], lines, "  ");
+        const visStr = node.visibility === "pub" ? "pub " : "";
+
+        if (node.type === "Gene") {
+            lines.push(`✓ ${visStr}gene ${node.name} validated`);
+            formatStatements(node.statements || [], lines, "  ");
+            if (node.exegesis) {
+                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+            }
+        } else if (node.type === "Trait") {
+            lines.push(`✓ ${visStr}trait ${node.name} validated`);
+            formatStatements(node.statements || [], lines, "  ");
+            if (node.exegesis) {
+                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+            }
+        } else if (node.type === "Constraint") {
+            lines.push(`✓ ${visStr}constraint ${node.name} validated`);
+            formatStatements(node.statements || [], lines, "  ");
+            if (node.exegesis) {
+                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+            }
+        } else if (node.type === "System") {
+            const versionStr = node.version ? ` @ ${node.version}` : "";
+            lines.push(`✓ ${visStr}system ${node.name}${versionStr} validated`);
+            formatStatements(node.statements || [], lines, "  ");
+            if (node.exegesis) {
+                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+            }
         } else if (node.type === "Function") {
-            const effectStr = node.effectful ? " (effectful)" : "";
+            const purityStr = node.purity === "sex" ? "sex " : "";
+            const paramsStr = node.params?.map(p => `${p.name}: ${p.param_type}`).join(", ") || "";
             const returnStr = node.return_type ? ` -> ${node.return_type}` : "";
-            lines.push(`✓ fun ${node.name}()${returnStr}${effectStr}`);
+            lines.push(`✓ ${visStr}${purityStr}fun ${node.name}(${paramsStr})${returnStr}`);
+        } else if (node.type === "Const") {
+            lines.push(`✓ ${visStr}const ${node.name}`);
         }
     }
 
     // Add compilation stats
     if (metadata) {
         lines.push("");
+        lines.push("─".repeat(40));
         lines.push(`→ Compiler: DOL v${metadata.version}`);
         if (compileTime !== null) {
             lines.push(`→ Compiled in ${compileTime.toFixed(1)}ms`);
         }
+        lines.push(`→ ${metadata.source_lines} lines parsed`);
+
+        const counts = [];
+        if (metadata.gene_count > 0) counts.push(`${metadata.gene_count} gene${metadata.gene_count > 1 ? 's' : ''}`);
+        if (metadata.trait_count > 0) counts.push(`${metadata.trait_count} trait${metadata.trait_count > 1 ? 's' : ''}`);
+        if (metadata.constraint_count > 0) counts.push(`${metadata.constraint_count} constraint${metadata.constraint_count > 1 ? 's' : ''}`);
+        if (metadata.system_count > 0) counts.push(`${metadata.system_count} system${metadata.system_count > 1 ? 's' : ''}`);
+        if (metadata.function_count > 0) counts.push(`${metadata.function_count} function${metadata.function_count > 1 ? 's' : ''}`);
+
+        if (counts.length > 0) {
+            lines.push(`→ Found: ${counts.join(", ")}`);
+        }
     }
 
-    // Simulate execution
-    lines.push("");
-    lines.push("─".repeat(40));
-    lines.push("▶ Execution:");
-
-    const execResult = simulateExecution(source, ast);
-    lines.push(...execResult);
+    // Add warnings if any
+    if (output.warnings && output.warnings.length > 0) {
+        lines.push("");
+        lines.push("⚠ Warnings:");
+        for (const warning of output.warnings) {
+            lines.push(`  ${warning}`);
+        }
+    }
 
     return lines.join("\n");
 }
 
-// Simple DOL execution simulator
-function simulateExecution(source: string, ast: ASTNode[]): string[] {
-    const lines: string[] = [];
-
-    // Find gene and extract info
-    const gene = ast.find(n => n.type === "Gene" || n.type === "Spirit");
-    if (!gene) {
-        lines.push("  (no gene/spirit to execute)");
-        return lines;
-    }
-
-    // Parse initial value from source: "let c = Counter { value: X }"
-    const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
-    let value = initMatch ? parseInt(initMatch[1], 10) : 0;
-
-    // Parse increment expression from source: "this.value = this.value + X"
-    const incrMatch = source.match(/this\.value\s*=\s*this\.value\s*\+\s*(\d+)/);
-    const increment = incrMatch ? parseInt(incrMatch[1], 10) : 1;
-
-    // Count how many times increment is called
-    const callMatches = source.match(/\.increment\(\)/g);
-    const callCount = callMatches ? callMatches.length : 0;
-
-    lines.push(`  ⧬ ${gene.name} instantiated with value: ${value}`);
-
-    for (let i = 0; i < callCount; i++) {
-        const oldValue = value;
-        value += increment;
-        lines.push(`  → increment() called: ${oldValue} + ${increment} = ${value}`);
-    }
-
-    // Check for get() call
-    if (source.includes(".get()")) {
-        lines.push(`  → get() returns: ${value}`);
-    }
-
-    // Check for println
-    if (source.includes("println")) {
-        lines.push(`  📤 Output: ${value}`);
-    }
-
-    lines.push("");
-    lines.push(`✓ Final value: ${value}`);
-
-    return lines;
-}
-
-function formatBody(body: ASTNode[], lines: string[], indent: string) {
-    const lastIdx = body.length - 1;
-    body.forEach((node, i) => {
+function formatStatements(statements: StatementNode[], lines: string[], indent: string) {
+    const lastIdx = statements.length - 1;
+    statements.forEach((stmt, i) => {
         const isLast = i === lastIdx;
         const prefix = isLast ? "└─" : "├─";
 
-        if (node.type === "Field") {
-            const defaultStr = node.default_value ? ` = ${node.default_value}` : "";
-            lines.push(`${indent}${prefix} has: ${node.name} (${node.field_type})${defaultStr}`);
-        } else if (node.type === "Constraint") {
-            lines.push(`${indent}${prefix} constraint: ${node.name}`);
-        } else if (node.type === "Function") {
-            const effectStr = node.effectful ? " [effectful]" : "";
-            const returnStr = node.return_type ? ` -> ${node.return_type}` : "";
-            lines.push(`${indent}${prefix} fun: ${node.name}()${returnStr}${effectStr}`);
-        } else if (node.type === "Exegesis") {
-            lines.push(`${indent}${prefix} exegesis: "${node.content?.slice(0, 30)}..."`);
+        if (stmt.kind === "Has") {
+            lines.push(`${indent}${prefix} ${stmt.subject} has ${stmt.property}`);
+        } else if (stmt.kind === "HasField") {
+            const defaultStr = stmt.default_value ? ` = ${stmt.default_value}` : "";
+            lines.push(`${indent}${prefix} has ${stmt.name}: ${stmt.field_type}${defaultStr}`);
+        } else if (stmt.kind === "Is") {
+            lines.push(`${indent}${prefix} ${stmt.subject} is ${stmt.state}`);
+        } else if (stmt.kind === "Quantified") {
+            lines.push(`${indent}${prefix} ${stmt.quantifier} ${stmt.phrase}`);
+        } else if (stmt.kind === "Function") {
+            lines.push(`${indent}${prefix} fun ${stmt.name}()`);
+        } else if (stmt.kind === "Never") {
+            lines.push(`${indent}${prefix} ${stmt.subject} never ${stmt.property}`);
+        } else if (stmt.kind === "Requires") {
+            lines.push(`${indent}${prefix} requires ${stmt.property}`);
+        } else {
+            lines.push(`${indent}${prefix} ${stmt.kind}`);
         }
     });
 }
@@ -646,7 +603,7 @@ export function DOLPlayground() {
                                     </span>
                                 </div>
                                 <span className="text-xs text-[#00ff88]/60 font-mono">
-                                    DOL v0.7.2
+                                    DOL v0.7.1
                                 </span>
                             </div>
 
@@ -775,7 +732,7 @@ export function DOLPlayground() {
                     viewport={{ once: true }}
                     transition={{ delay: 0.5 }}
                 >
-                    DOL specifications compile to MLIR → WASM → Native
+                    DOL specifications compile via metadol → AST → WASM
                 </motion.p>
             </div>
         </section>
