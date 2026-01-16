@@ -6,37 +6,45 @@ import { useCompiler, CompileStatus as HookCompileStatus } from '../hooks/useCom
 import { useIdentity } from '../hooks/useIdentity';
 import { simulateExecution, ExecutionResult } from '../lib/sandbox';
 
-const DEFAULT_CODE = `// Define a Gene (ontological data structure)
-gene Counter {
-    counter has value
-    counter has timestamp
+const DEFAULT_CODE = `// DOL Playground - Try editing this code!
+
+// A Gene defines ontological structure
+gene Calculator {
+    calculator has value
+    calculator has history
+    calculator is stateful
 }
 
 exegesis {
-    A Counter gene tracks a numeric value and when it was updated.
+    A Calculator gene stores a value and tracks computation history.
 }
 
-// Define a pure function (compiles to WASM)
+// Pure functions compile to WebAssembly
 fun add(a: Int64, b: Int64) -> Int64 {
     return a + b
 }
 
-// Define a function with side effects
-sex fun log_event(message: String) {
-    emit log_event(message)
+fun multiply(x: Int64, y: Int64) -> Int64 {
+    return x * y
 }
 
-// Define a trait (behavioral contract)
-trait Incrementable {
-    incrementable is stateful
-    incrementable requires identity
+// Side-effect functions for I/O
+sex fun log_result(result: Int64) {
+    emit calculation_complete(result)
 }
 
-// Define a system (coordinated behavior)
-system counter.system @0.1.0 {
-    requires Counter >= 0.1.0
-    uses Incrementable
-    counterSystem has active_state
+// Traits define behavioral contracts
+trait Computable {
+    computable is pure
+    computable requires determinism
+}
+
+// Main entry point
+fun main() {
+    let sum = add(40, 2)
+    let product = multiply(6, 7)
+    log_result(sum)
+    return sum
 }`;
 
 type CompileStatus = 'ready' | 'compiling' | 'success' | 'error';

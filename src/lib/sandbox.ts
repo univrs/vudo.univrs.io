@@ -124,95 +124,231 @@ async function executeWasmInternal(wasm: Uint8Array): Promise<string> {
 
 /**
  * Simulate execution for AST-only compilation results
- * Parses source code to extract actual values for simulation
+ * Parses source code to extract actual values and simulates function calls
  */
 export function simulateExecution(ast: object, source?: string): ExecutionResult {
   const startTime = performance.now();
   const output: string[] = [];
 
-  // Parse values from source code if available
-  let initialValue = 0;
-  let incrementAmount = 1;
-  let incrementCalls = 0;
-
-  if (source) {
-    // Parse initial value: "let c = Counter { value: X }"
-    const initMatch = source.match(/let\s+\w+\s*=\s*\w+\s*\{\s*value\s*:\s*(\d+)/);
-    if (initMatch) {
-      initialValue = parseInt(initMatch[1], 10);
-    }
-
-    // Parse increment: "this.value = this.value + X" or "this.value + X" (also supports legacy self.)
-    const incrMatch = source.match(/(?:this|self)\.value\s*(?:=\s*(?:this|self)\.value\s*)?\+\s*(\d+)/);
-    if (incrMatch) {
-      incrementAmount = parseInt(incrMatch[1], 10);
-    }
-
-    // Count increment calls
-    const callMatches = source.match(/\.increment\(\)/g);
-    incrementCalls = callMatches ? callMatches.length : 0;
-  }
-
   // Extract info from AST
   const astArray = Array.isArray(ast) ? ast : [ast];
 
+  // Collect all functions for simulation
+  const functions: Map<string, { params: string[]; purity: string; body?: string }> = new Map();
+  const emittedEvents: string[] = [];
+
+  // First pass: collect function definitions
   for (const node of astArray) {
-    const nodeType = (node as any).type;
+    const nodeType = (node as any).type?.toLowerCase();
     const nodeName = (node as any).name;
-    const body = (node as any).body || [];
+    const purity = (node as any).purity;
+    const params = (node as any).params || [];
 
-    if (nodeType === 'Spirit') {
-      output.push(`⟡ Spirit "${nodeName}" instantiated`);
-      for (const item of body) {
-        if (item.type === 'Function') {
-          output.push(`  → fun ${item.name}() defined`);
-        } else if (item.type === 'Field') {
-          output.push(`  → has ${item.name} initialized`);
+    if (nodeType === 'function') {
+      functions.set(nodeName, {
+        params: params.map((p: any) => p.name),
+        purity: purity === 'SideEffect' ? 'sex' : 'pure',
+      });
+    }
+  }
+
+  // Parse function bodies and calls from source
+  const functionCalls: { name: string; args: number[] }[] = [];
+
+  if (source) {
+    // Parse main() body for function calls
+    const mainMatch = source.match(/fun\s+main\s*\(\s*\)\s*\{([^}]+)\}/s);
+    if (mainMatch) {
+      const mainBody = mainMatch[1];
+
+      // Find all function calls: funcName(arg1, arg2)
+      const callRegex = /(\w+)\s*\(\s*([^)]*)\s*\)/g;
+      let match;
+      while ((match = callRegex.exec(mainBody)) !== null) {
+        const funcName = match[1];
+        const argsStr = match[2];
+        // Only process known functions, skip 'let' assignments
+        if (functions.has(funcName)) {
+          const args = argsStr
+            .split(',')
+            .map(a => a.trim())
+            .filter(a => a.length > 0)
+            .map(a => {
+              // Try to resolve variable or parse number
+              const num = parseInt(a, 10);
+              return isNaN(num) ? 0 : num;
+            });
+          functionCalls.push({ name: funcName, args });
         }
       }
-    } else if (nodeType === 'Gene') {
-      output.push(`⧬ Gene "${nodeName}" instantiated with value: ${initialValue}`);
 
-      // Show fields and functions
-      const fields = body.filter((b: any) => b.type === 'Field');
-      const functions = body.filter((b: any) => b.type === 'Function');
-
-      for (const field of fields) {
-        output.push(`  → has ${field.name}: ${initialValue}`);
-      }
-
-      output.push('');
-      output.push('▸ Executing main()...');
-
-      // Simulate increment calls
-      let currentValue = initialValue;
-      const increment = functions.find((f: any) => f.name === 'increment');
-      const getValue = functions.find((f: any) => f.name === 'get');
-
-      if (increment && incrementCalls > 0) {
-        for (let i = 0; i < incrementCalls; i++) {
-          const oldValue = currentValue;
-          currentValue += incrementAmount;
-          output.push(`  → ${nodeName}.increment(): ${oldValue} + ${incrementAmount} = ${currentValue}`);
+      // Parse let bindings with function calls
+      const letRegex = /let\s+(\w+)\s*=\s*(\w+)\s*\(\s*([^)]*)\s*\)/g;
+      while ((match = letRegex.exec(mainBody)) !== null) {
+        const varName = match[1];
+        const funcName = match[2];
+        const argsStr = match[3];
+        if (functions.has(funcName)) {
+          const args = argsStr
+            .split(',')
+            .map(a => a.trim())
+            .filter(a => a.length > 0)
+            .map(a => {
+              const num = parseInt(a, 10);
+              return isNaN(num) ? 0 : num;
+            });
+          functionCalls.push({ name: funcName, args });
         }
-      }
-
-      if (getValue) {
-        output.push(`  → ${nodeName}.get() → ${currentValue}`);
-      }
-
-      // Check for println
-      if (source && source.includes('println')) {
-        output.push(`  📤 println: ${currentValue}`);
-      }
-
-      output.push('');
-      output.push(`✓ Final value: ${currentValue}`);
-    } else if (nodeType === 'Function') {
-      if (nodeName === 'main') {
-        // main is handled above
       }
     }
+
+    // Parse emit statements from source
+    const emitRegex = /emit\s+(\w+)\s*\(/g;
+    let emitMatch;
+    while ((emitMatch = emitRegex.exec(source)) !== null) {
+      emittedEvents.push(emitMatch[1]);
+    }
+  }
+
+  // Second pass: display AST structure
+  for (const node of astArray) {
+    const nodeType = (node as any).type?.toLowerCase();
+    const nodeName = (node as any).name;
+    const statements = (node as any).statements || (node as any).body || [];
+
+    if (nodeType === 'spirit') {
+      output.push(`⟡ Spirit "${nodeName}" loaded`);
+    } else if (nodeType === 'gene') {
+      output.push(`⧬ Gene "${nodeName}" instantiated`);
+      for (const stmt of statements) {
+        const kind = stmt.kind || stmt.type;
+        if (kind === 'Has' || kind === 'HasField') {
+          output.push(`  → has ${stmt.property || stmt.name}`);
+        } else if (kind === 'Is') {
+          output.push(`  → is ${stmt.state}`);
+        }
+      }
+    } else if (nodeType === 'trait') {
+      output.push(`⚙ Trait "${nodeName}" defined`);
+    } else if (nodeType === 'constraint') {
+      output.push(`⛓ Constraint "${nodeName}" defined`);
+    }
+  }
+
+  // Check if we have a main function
+  const hasMain = functions.has('main');
+
+  if (hasMain) {
+    output.push('');
+    output.push('▸ Executing main()...');
+    output.push('');
+
+    // Simulate function calls
+    const variables: Map<string, number> = new Map();
+    let lastResult = 0;
+
+    // Parse let bindings from main
+    if (source) {
+      const mainMatch = source.match(/fun\s+main\s*\(\s*\)\s*\{([^}]+)\}/s);
+      if (mainMatch) {
+        const mainBody = mainMatch[1];
+        const letRegex = /let\s+(\w+)\s*=\s*(\w+)\s*\(\s*([^)]*)\s*\)/g;
+        let match;
+
+        while ((match = letRegex.exec(mainBody)) !== null) {
+          const varName = match[1];
+          const funcName = match[2];
+          const argsStr = match[3];
+
+          if (functions.has(funcName)) {
+            const func = functions.get(funcName)!;
+            const args = argsStr
+              .split(',')
+              .map(a => a.trim())
+              .filter(a => a.length > 0)
+              .map(a => {
+                // Check if it's a variable reference
+                if (variables.has(a)) {
+                  return variables.get(a)!;
+                }
+                const num = parseInt(a, 10);
+                return isNaN(num) ? 0 : num;
+              });
+
+            // Simulate the function
+            let result = 0;
+            if (funcName === 'add' && args.length >= 2) {
+              result = args[0] + args[1];
+              output.push(`  → ${funcName}(${args.join(', ')}) = ${result}`);
+            } else if (funcName === 'multiply' && args.length >= 2) {
+              result = args[0] * args[1];
+              output.push(`  → ${funcName}(${args.join(', ')}) = ${result}`);
+            } else if (funcName === 'subtract' && args.length >= 2) {
+              result = args[0] - args[1];
+              output.push(`  → ${funcName}(${args.join(', ')}) = ${result}`);
+            } else if (funcName === 'divide' && args.length >= 2) {
+              result = args[1] !== 0 ? Math.floor(args[0] / args[1]) : 0;
+              output.push(`  → ${funcName}(${args.join(', ')}) = ${result}`);
+            } else {
+              output.push(`  → ${funcName}(${args.join(', ')}) called`);
+            }
+
+            variables.set(varName, result);
+            lastResult = result;
+          }
+        }
+
+        // Parse standalone function calls (like log_result(sum))
+        const callRegex = /(?<!let\s+\w+\s*=\s*)(\w+)\s*\(\s*([^)]*)\s*\)/g;
+        const lines = mainBody.split('\n');
+        for (const line of lines) {
+          if (line.includes('let ') || line.includes('return ')) continue;
+
+          const callMatch = line.match(/(\w+)\s*\(\s*([^)]*)\s*\)/);
+          if (callMatch) {
+            const funcName = callMatch[1];
+            const argsStr = callMatch[2];
+
+            if (functions.has(funcName)) {
+              const func = functions.get(funcName)!;
+              const args = argsStr
+                .split(',')
+                .map(a => a.trim())
+                .filter(a => a.length > 0)
+                .map(a => {
+                  if (variables.has(a)) {
+                    return variables.get(a)!;
+                  }
+                  const num = parseInt(a, 10);
+                  return isNaN(num) ? 0 : num;
+                });
+
+              if (func.purity === 'sex') {
+                output.push(`  📤 ${funcName}(${args.join(', ')}) → side effect`);
+                for (const event of emittedEvents) {
+                  output.push(`     ⚡ emit ${event}(${args.join(', ')})`);
+                }
+              }
+            }
+          }
+        }
+
+        // Check for return statement
+        const returnMatch = mainBody.match(/return\s+(\w+)/);
+        if (returnMatch) {
+          const returnVar = returnMatch[1];
+          const returnValue = variables.get(returnVar) ?? lastResult;
+          output.push('');
+          output.push(`✓ main() returned: ${returnValue}`);
+        }
+      }
+    }
+  }
+
+  // If no specific output was generated, show a generic success
+  if (output.length === 0) {
+    output.push('▸ Code executed successfully');
+    output.push('▸ No output (AST mode)');
   }
 
   return {
