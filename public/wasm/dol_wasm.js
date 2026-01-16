@@ -1,5 +1,10 @@
 let wasm;
 
+function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
+}
+
 let cachedDataViewMemory0 = null;
 function getDataViewMemory0() {
     if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
@@ -94,10 +99,27 @@ if (!('encodeInto' in cachedTextEncoder)) {
 let WASM_VECTOR_LEN = 0;
 
 /**
+ * Parse and validate DOL source code
+ *
+ * Returns both the AST and validation results (warnings for empty exegesis, etc.)
+ * @param {string} source
+ * @returns {any}
+ */
+export function compile_and_validate(source) {
+    const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.compile_and_validate(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * Compile DOL source code to an AST
  *
  * This is the main entry point for the WASM module.
- * It parses the DOL source and returns a compilation result.
+ * It parses the DOL source using metadol and returns a compilation result.
  * @param {string} source
  * @returns {any}
  */
@@ -109,6 +131,66 @@ export function compile_dol(source) {
         throw takeFromExternrefTable0(ret[1]);
     }
     return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Compile DOL source code to WebAssembly bytecode
+ *
+ * This function parses DOL source, then uses the WasmCompiler to emit
+ * actual WASM bytecode that can be instantiated via the browser's WebAssembly API.
+ *
+ * # Example (JavaScript)
+ *
+ * ```javascript
+ * const result = compile_to_wasm(dolSource);
+ * if (result.success) {
+ *     const wasmModule = await WebAssembly.compile(result.bytecode);
+ *     const instance = await WebAssembly.instantiate(wasmModule);
+ *     // Call exported functions...
+ * }
+ * ```
+ * @param {string} source
+ * @returns {any}
+ */
+export function compile_to_wasm(source) {
+    const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.compile_to_wasm(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Compile DOL source to WASM bytecode and return as Uint8Array
+ *
+ * This is a convenience function that returns the raw bytecode directly
+ * as a JavaScript Uint8Array, suitable for immediate use with WebAssembly.instantiate().
+ *
+ * # Example (JavaScript)
+ *
+ * ```javascript
+ * try {
+ *     const wasmBytes = compile_to_wasm_bytes(dolSource);
+ *     const wasmModule = await WebAssembly.instantiate(wasmBytes);
+ * } catch (err) {
+ *     console.error("Compilation failed:", err);
+ * }
+ * ```
+ * @param {string} source
+ * @returns {Uint8Array}
+ */
+export function compile_to_wasm_bytes(source) {
+    const ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.compile_to_wasm_bytes(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
 }
 
 /**
@@ -146,6 +228,13 @@ export function get_version() {
     } finally {
         wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
     }
+}
+
+/**
+ * Initialize panic hook for better error messages in browser console
+ */
+export function init() {
+    wasm.init();
 }
 
 /**
@@ -210,6 +299,17 @@ function __wbg_get_imports() {
     imports.wbg.__wbg___wbindgen_throw_dd24417ed36fc46e = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
+    imports.wbg.__wbg_error_7534b8e9a36f1ab4 = function(arg0, arg1) {
+        let deferred0_0;
+        let deferred0_1;
+        try {
+            deferred0_0 = arg0;
+            deferred0_1 = arg1;
+            console.error(getStringFromWasm0(arg0, arg1));
+        } finally {
+            wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+        }
+    };
     imports.wbg.__wbg_new_1ba21ce319a06297 = function() {
         const ret = new Object();
         return ret;
@@ -218,11 +318,22 @@ function __wbg_get_imports() {
         const ret = new Array();
         return ret;
     };
+    imports.wbg.__wbg_new_8a6f238a6ece86ea = function() {
+        const ret = new Error();
+        return ret;
+    };
     imports.wbg.__wbg_set_3f1d0b984ed272ed = function(arg0, arg1, arg2) {
         arg0[arg1] = arg2;
     };
     imports.wbg.__wbg_set_7df433eea03a5c14 = function(arg0, arg1, arg2) {
         arg0[arg1 >>> 0] = arg2;
+    };
+    imports.wbg.__wbg_stack_0ed75d68575b0f3c = function(arg0, arg1) {
+        const ret = arg1.stack;
+        const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
     };
     imports.wbg.__wbindgen_cast_2241b6af4c4b2941 = function(arg0, arg1) {
         // Cast intrinsic for `Ref(String) -> Externref`.

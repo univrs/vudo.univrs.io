@@ -1,81 +1,194 @@
-//! DOL-WASM: WebAssembly bindings for the DOL v0.7.0 language compiler
+//! DOL-WASM: WebAssembly bindings for the DOL language compiler
 //!
-//! This crate provides a WASM interface for parsing and validating DOL source code.
-//! For MVP, it performs basic syntax validation and returns an AST-like structure.
+//! This crate provides thin WASM bindings over the `metadol` compiler crate,
+//! ensuring a single source of truth for DOL parsing and validation.
 //!
-//! # DOL v0.7.0 Syntax Overview
-//! - `spirit` keyword defines a reactive computation unit (versioned with @X.Y.Z)
-//! - `gene` keyword defines a reusable type with methods and constraints
-//! - `fun` keyword defines pure functions
-//! - `sex fun` keyword defines effectful functions (Side EXecution)
-//! - `has` keyword declares fields within genes/spirits
-//! - `exegesis` block provides documentation
-//! - Curly braces `{}` for block structure
-//! - Comments with `//` and `/* */`
+//! # Architecture
+//!
+//! ```text
+//! Browser → dol-wasm (WASM bindings) → metadol (core compiler)
+//! ```
+//!
+//! This eliminates version drift by using metadol directly instead of
+//! maintaining a separate parser implementation.
 
+use metadol::{
+    ast::{Declaration, Quantifier, Statement, Visibility},
+    parse_and_validate, parse_file, parse_file_all,
+    wasm::WasmCompiler,
+    ParseError,
+};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-/// Represents a parsed DOL node in the AST
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum DolNode {
-    /// A spirit declaration (reactive computation unit with version)
-    Spirit {
-        name: String,
-        version: Option<String>,
-        body: Vec<DolNode>,
-        line: usize,
-    },
-    /// A gene declaration (reusable type with methods and constraints)
-    Gene {
-        name: String,
-        body: Vec<DolNode>,
-        line: usize,
-    },
-    /// A function declaration (pure function with `fun`)
-    Function {
-        name: String,
-        params: Vec<String>,
-        return_type: Option<String>,
-        body: String,
-        effectful: bool, // true if declared with `sex fun`
-        line: usize,
-    },
-    /// A field declaration (using `has` keyword)
-    Field {
-        name: String,
-        field_type: String,
-        default_value: Option<String>,
-        line: usize,
-    },
-    /// A constraint block
-    Constraint {
-        name: String,
-        body: String,
-        line: usize,
-    },
-    /// An exegesis (documentation) block
-    Exegesis { content: String, line: usize },
-    /// A comment node
-    Comment { content: String, line: usize },
-    /// Unknown or unrecognized syntax
-    Unknown { content: String, line: usize },
+/// Initialize panic hook for better error messages in browser console
+#[wasm_bindgen(start)]
+pub fn init() {
+    #[cfg(feature = "console_error_panic_hook")]
+    console_error_panic_hook::set_once();
 }
 
-/// Result of DOL compilation/parsing
+/// Compilation result returned to JavaScript
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompileResult {
     /// Whether compilation was successful
     pub success: bool,
-    /// Parsed AST nodes
-    pub ast: Vec<DolNode>,
+    /// Parsed AST (serialized declarations)
+    pub ast: Vec<AstNode>,
     /// Any errors encountered
     pub errors: Vec<CompileError>,
     /// Any warnings
     pub warnings: Vec<String>,
     /// Metadata about the compilation
     pub metadata: CompileMetadata,
+}
+
+/// Simplified AST node for browser consumption
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum AstNode {
+    /// A gene declaration
+    Gene {
+        name: String,
+        visibility: String,
+        extends: Option<String>,
+        statements: Vec<StatementNode>,
+        exegesis: String,
+        line: usize,
+    },
+    /// A trait declaration
+    Trait {
+        name: String,
+        visibility: String,
+        statements: Vec<StatementNode>,
+        exegesis: String,
+        line: usize,
+    },
+    /// A constraint declaration
+    Constraint {
+        name: String,
+        visibility: String,
+        statements: Vec<StatementNode>,
+        exegesis: String,
+        line: usize,
+    },
+    /// A system declaration
+    System {
+        name: String,
+        visibility: String,
+        version: String,
+        requirements: Vec<RequirementNode>,
+        statements: Vec<StatementNode>,
+        exegesis: String,
+        line: usize,
+    },
+    /// An evolution declaration
+    Evolution {
+        name: String,
+        version: String,
+        parent_version: String,
+        additions: Vec<StatementNode>,
+        deprecations: Vec<StatementNode>,
+        removals: Vec<String>,
+        rationale: Option<String>,
+        exegesis: String,
+        line: usize,
+    },
+    /// A function declaration
+    Function {
+        name: String,
+        visibility: String,
+        purity: String,
+        params: Vec<ParamNode>,
+        return_type: Option<String>,
+        line: usize,
+    },
+    /// A constant declaration
+    Const {
+        name: String,
+        visibility: String,
+        const_type: Option<String>,
+        line: usize,
+    },
+}
+
+/// Statement node for browser consumption
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind")]
+pub enum StatementNode {
+    /// Property possession: subject has property
+    Has {
+        subject: String,
+        property: String,
+    },
+    /// Typed field declaration: has field: Type
+    HasField {
+        name: String,
+        field_type: String,
+        default_value: Option<String>,
+    },
+    /// State or behavior: subject is state
+    Is {
+        subject: String,
+        state: String,
+    },
+    /// Origin relationship: subject derives from origin
+    DerivesFrom {
+        subject: String,
+        origin: String,
+    },
+    /// Dependency: subject requires requirement
+    Requires {
+        subject: String,
+        requirement: String,
+    },
+    /// Composition: uses reference
+    Uses {
+        reference: String,
+    },
+    /// Event production: action emits event
+    Emits {
+        action: String,
+        event: String,
+    },
+    /// Equivalence constraint: subject matches target
+    Matches {
+        subject: String,
+        target: String,
+    },
+    /// Negative constraint: subject never action
+    Never {
+        subject: String,
+        action: String,
+    },
+    /// Quantified statement: each/all subject predicate
+    Quantified {
+        quantifier: String,
+        phrase: String,
+    },
+    /// Nested function
+    Function {
+        name: String,
+    },
+    /// Other statement types
+    Other {
+        description: String,
+    },
+}
+
+/// Requirement node for system dependencies
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequirementNode {
+    pub name: String,
+    pub constraint: String,
+    pub version: String,
+}
+
+/// Function parameter node
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParamNode {
+    pub name: String,
+    pub param_type: String,
 }
 
 /// Compilation error information
@@ -91,977 +204,493 @@ pub struct CompileError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompileMetadata {
     pub version: String,
-    pub spirit_count: usize,
     pub gene_count: usize,
-    pub function_count: usize,
-    pub field_count: usize,
+    pub trait_count: usize,
     pub constraint_count: usize,
+    pub system_count: usize,
+    pub function_count: usize,
     pub source_lines: usize,
 }
 
-/// Token types for lexical analysis
-#[derive(Debug, Clone, PartialEq)]
-enum Token {
-    // Declaration keywords
-    Spirit,
-    Gene,
-    Trait,
-    // Function keywords
-    Fun,
-    Sex, // Side EXecution marker
-    // Field/binding keywords
-    Has,
-    Let,
-    Const,
-    Mut,
-    // Control flow
-    If,
-    Else,
-    Match,
-    Return,
-    // Documentation
-    Exegesis,
-    // Constraint
-    Constraint,
-    // Other keywords
-    Pub,
-    This,
-    // Literals and identifiers
-    Identifier(String),
-    StringLiteral(String),
-    NumberLiteral(String),
-    Version(String), // @X.Y.Z
-    // Punctuation
-    OpenBrace,
-    CloseBrace,
-    OpenParen,
-    CloseParen,
-    OpenBracket,
-    CloseBracket,
-    Colon,
-    Arrow,    // ->
-    FatArrow, // =>
-    Comma,
-    Dot,
-    Equals,
-    // Operators
-    Plus,
-    Minus,
-    Star,
-    Slash,
-    Pipe,      // |
-    PipeArrow, // |>
-    // Other
-    Comment(String),
-    Whitespace,
-    Newline,
-    Unknown(char),
-    Eof,
-}
-
-/// Simple lexer for DOL source code
-struct Lexer<'a> {
-    source: &'a str,
-    chars: std::iter::Peekable<std::str::Chars<'a>>,
-    line: usize,
-    column: usize,
-}
-
-impl<'a> Lexer<'a> {
-    fn new(source: &'a str) -> Self {
-        Lexer {
-            source,
-            chars: source.chars().peekable(),
-            line: 1,
-            column: 1,
-        }
-    }
-
-    fn next_char(&mut self) -> Option<char> {
-        let c = self.chars.next();
-        if let Some(ch) = c {
-            if ch == '\n' {
-                self.line += 1;
-                self.column = 1;
-            } else {
-                self.column += 1;
-            }
-        }
-        c
-    }
-
-    fn peek_char(&mut self) -> Option<&char> {
-        self.chars.peek()
-    }
-
-    fn skip_whitespace(&mut self) {
-        while let Some(&c) = self.peek_char() {
-            if c == ' ' || c == '\t' || c == '\r' {
-                self.next_char();
-            } else {
-                break;
-            }
-        }
-    }
-
-    fn read_identifier(&mut self, first: char) -> String {
-        let mut ident = String::new();
-        ident.push(first);
-        while let Some(&c) = self.peek_char() {
-            if c.is_alphanumeric() || c == '_' {
-                ident.push(self.next_char().unwrap());
-            } else {
-                break;
-            }
-        }
-        ident
-    }
-
-    fn read_string(&mut self, quote: char) -> String {
-        let mut s = String::new();
-        while let Some(c) = self.next_char() {
-            if c == quote {
-                break;
-            } else if c == '\\' {
-                if let Some(escaped) = self.next_char() {
-                    s.push(escaped);
-                }
-            } else {
-                s.push(c);
-            }
-        }
-        s
-    }
-
-    fn read_line_comment(&mut self) -> String {
-        let mut comment = String::new();
-        while let Some(&c) = self.peek_char() {
-            if c == '\n' {
-                break;
-            }
-            comment.push(self.next_char().unwrap());
-        }
-        comment
-    }
-
-    fn read_block_comment(&mut self) -> String {
-        let mut comment = String::new();
-        let mut prev = ' ';
-        while let Some(c) = self.next_char() {
-            if prev == '*' && c == '/' {
-                comment.pop(); // Remove the trailing '*'
-                break;
-            }
-            comment.push(c);
-            prev = c;
-        }
-        comment
-    }
-
-    fn next_token(&mut self) -> (Token, usize, usize) {
-        self.skip_whitespace();
-
-        let line = self.line;
-        let column = self.column;
-
-        match self.next_char() {
-            None => (Token::Eof, line, column),
-            Some('\n') => (Token::Newline, line, column),
-            Some('{') => (Token::OpenBrace, line, column),
-            Some('}') => (Token::CloseBrace, line, column),
-            Some('(') => (Token::OpenParen, line, column),
-            Some(')') => (Token::CloseParen, line, column),
-            Some('[') => (Token::OpenBracket, line, column),
-            Some(']') => (Token::CloseBracket, line, column),
-            Some(':') => (Token::Colon, line, column),
-            Some(',') => (Token::Comma, line, column),
-            Some('.') => (Token::Dot, line, column),
-            Some('+') => (Token::Plus, line, column),
-            Some('*') => (Token::Star, line, column),
-            Some('-') => {
-                if self.peek_char() == Some(&'>') {
-                    self.next_char();
-                    (Token::Arrow, line, column)
-                } else {
-                    (Token::Minus, line, column)
-                }
-            }
-            Some('=') => {
-                if self.peek_char() == Some(&'>') {
-                    self.next_char();
-                    (Token::FatArrow, line, column)
-                } else {
-                    (Token::Equals, line, column)
-                }
-            }
-            Some('|') => {
-                if self.peek_char() == Some(&'>') {
-                    self.next_char();
-                    (Token::PipeArrow, line, column)
-                } else {
-                    (Token::Pipe, line, column)
-                }
-            }
-            Some('@') => {
-                // Version literal: @X.Y.Z
-                let mut version = String::new();
-                while let Some(&c) = self.peek_char() {
-                    if c.is_numeric() || c == '.' {
-                        version.push(self.next_char().unwrap());
-                    } else {
-                        break;
-                    }
-                }
-                (Token::Version(version), line, column)
-            }
-            Some('/') => {
-                if self.peek_char() == Some(&'/') {
-                    self.next_char();
-                    let comment = self.read_line_comment();
-                    (Token::Comment(comment), line, column)
-                } else if self.peek_char() == Some(&'*') {
-                    self.next_char();
-                    let comment = self.read_block_comment();
-                    (Token::Comment(comment), line, column)
-                } else {
-                    (Token::Slash, line, column)
-                }
-            }
-            Some('"') => {
-                let s = self.read_string('"');
-                (Token::StringLiteral(s), line, column)
-            }
-            Some('\'') => {
-                let s = self.read_string('\'');
-                (Token::StringLiteral(s), line, column)
-            }
-            Some(c) if c.is_alphabetic() || c == '_' => {
-                let ident = self.read_identifier(c);
-                let token = match ident.as_str() {
-                    // Declaration keywords
-                    "spirit" => Token::Spirit,
-                    "gene" => Token::Gene,
-                    "trait" => Token::Trait,
-                    // Function keywords
-                    "fun" => Token::Fun,
-                    "sex" => Token::Sex,
-                    // Field/binding keywords
-                    "has" => Token::Has,
-                    "let" => Token::Let,
-                    "const" => Token::Const,
-                    "mut" => Token::Mut,
-                    // Control flow
-                    "if" => Token::If,
-                    "else" => Token::Else,
-                    "match" => Token::Match,
-                    "return" => Token::Return,
-                    // Documentation
-                    "exegesis" => Token::Exegesis,
-                    // Constraint
-                    "constraint" => Token::Constraint,
-                    // Other keywords
-                    "pub" => Token::Pub,
-                    "this" => Token::This,
-                    _ => Token::Identifier(ident),
-                };
-                (token, line, column)
-            }
-            Some(c) if c.is_numeric() => {
-                let mut num = String::new();
-                num.push(c);
-                while let Some(&ch) = self.peek_char() {
-                    if ch.is_numeric() || ch == '.' {
-                        num.push(self.next_char().unwrap());
-                    } else {
-                        break;
-                    }
-                }
-                (Token::NumberLiteral(num), line, column)
-            }
-            Some(c) => (Token::Unknown(c), line, column),
-        }
+/// Convert visibility to string
+fn visibility_to_string(vis: &Visibility) -> String {
+    match vis {
+        Visibility::Private => "private".to_string(),
+        Visibility::Public => "pub".to_string(),
+        Visibility::PubSpirit => "pub(spirit)".to_string(),
+        Visibility::PubParent => "pub(parent)".to_string(),
     }
 }
 
-/// Parser for DOL source code
-struct Parser<'a> {
-    lexer: Lexer<'a>,
-    current_token: Token,
-    current_line: usize,
-    current_column: usize,
-    errors: Vec<CompileError>,
-    warnings: Vec<String>,
-}
-
-impl<'a> Parser<'a> {
-    fn new(source: &'a str) -> Self {
-        let mut lexer = Lexer::new(source);
-        let (token, line, column) = lexer.next_token();
-        Parser {
-            lexer,
-            current_token: token,
-            current_line: line,
-            current_column: column,
-            errors: Vec::new(),
-            warnings: Vec::new(),
-        }
-    }
-
-    fn advance(&mut self) {
-        let (token, line, column) = self.lexer.next_token();
-        self.current_token = token;
-        self.current_line = line;
-        self.current_column = column;
-    }
-
-    fn skip_newlines(&mut self) {
-        while self.current_token == Token::Newline {
-            self.advance();
-        }
-    }
-
-    fn add_error(&mut self, message: &str, error_type: &str) {
-        self.errors.push(CompileError {
-            message: message.to_string(),
-            line: self.current_line,
-            column: self.current_column,
-            error_type: error_type.to_string(),
-        });
-    }
-
-    fn expect_identifier(&mut self) -> Option<String> {
-        match &self.current_token {
-            Token::Identifier(name) => {
-                let name = name.clone();
-                self.advance();
-                Some(name)
-            }
-            _ => {
-                self.add_error("Expected identifier", "SyntaxError");
-                None
-            }
-        }
-    }
-
-    fn parse_spirit(&mut self) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'spirit'
-        self.skip_newlines();
-
-        let name = self.expect_identifier()?;
-        self.skip_newlines();
-
-        // Check for version @X.Y.Z
-        let version = if let Token::Version(v) = &self.current_token {
-            let ver = Some(v.clone());
-            self.advance();
-            self.skip_newlines();
-            ver
-        } else {
-            None
-        };
-
-        // Expect opening brace
-        if self.current_token != Token::OpenBrace {
-            self.add_error("Expected '{' after spirit name", "SyntaxError");
-            return None;
-        }
-        self.advance();
-
-        let body = self.parse_body();
-
-        Some(DolNode::Spirit {
-            name,
-            version,
-            body,
-            line,
-        })
-    }
-
-    fn parse_gene(&mut self) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'gene'
-        self.skip_newlines();
-
-        let name = self.expect_identifier()?;
-        self.skip_newlines();
-
-        // Expect opening brace
-        if self.current_token != Token::OpenBrace {
-            self.add_error("Expected '{' after gene name", "SyntaxError");
-            return None;
-        }
-        self.advance();
-
-        let body = self.parse_body();
-
-        Some(DolNode::Gene { name, body, line })
-    }
-
-    fn parse_body(&mut self) -> Vec<DolNode> {
-        let mut body = Vec::new();
-        let mut brace_depth = 1;
-
-        while brace_depth > 0 {
-            self.skip_newlines();
-
-            match &self.current_token {
-                Token::Eof => {
-                    self.add_error("Unexpected end of file, unclosed block", "SyntaxError");
-                    break;
-                }
-                Token::OpenBrace => {
-                    brace_depth += 1;
-                    self.advance();
-                }
-                Token::CloseBrace => {
-                    brace_depth -= 1;
-                    self.advance();
-                }
-                Token::Fun => {
-                    if let Some(func) = self.parse_function(false) {
-                        body.push(func);
-                    }
-                }
-                Token::Sex => {
-                    // sex fun = effectful function
-                    self.advance();
-                    self.skip_newlines();
-                    if self.current_token == Token::Fun {
-                        if let Some(func) = self.parse_function(true) {
-                            body.push(func);
-                        }
-                    } else {
-                        self.add_error("Expected 'fun' after 'sex'", "SyntaxError");
-                    }
-                }
-                Token::Has => {
-                    if let Some(field) = self.parse_field() {
-                        body.push(field);
-                    }
-                }
-                Token::Constraint => {
-                    if let Some(constraint) = self.parse_constraint() {
-                        body.push(constraint);
-                    }
-                }
-                Token::Exegesis => {
-                    if let Some(exegesis) = self.parse_exegesis() {
-                        body.push(exegesis);
-                    }
-                }
-                Token::Pub => {
-                    // Skip 'pub' modifier and continue parsing
-                    self.advance();
-                }
-                Token::Comment(content) => {
-                    body.push(DolNode::Comment {
-                        content: content.clone(),
-                        line: self.current_line,
-                    });
-                    self.advance();
-                }
-                _ => {
-                    self.advance();
-                }
-            }
-        }
-
-        body
-    }
-
-    fn parse_function(&mut self, effectful: bool) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'fun'
-        self.skip_newlines();
-
-        let name = self.expect_identifier()?;
-        self.skip_newlines();
-
-        // Parse parameters
-        let mut params = Vec::new();
-        if self.current_token == Token::OpenParen {
-            self.advance();
-            while self.current_token != Token::CloseParen && self.current_token != Token::Eof {
-                self.skip_newlines();
-                if let Token::Identifier(param) = &self.current_token {
-                    params.push(param.clone());
-                    self.advance();
-                    self.skip_newlines();
-                    // Skip type annotation: name: Type
-                    if self.current_token == Token::Colon {
-                        self.advance();
-                        self.skip_newlines();
-                        // Skip the type
-                        if let Token::Identifier(_) = &self.current_token {
-                            self.advance();
-                        }
-                    }
-                    self.skip_newlines();
-                    if self.current_token == Token::Comma {
-                        self.advance();
-                    }
-                } else if self.current_token == Token::CloseParen {
-                    break;
-                } else {
-                    self.advance();
-                }
-            }
-            if self.current_token == Token::CloseParen {
-                self.advance();
-            }
-        }
-
-        self.skip_newlines();
-
-        // Parse return type: -> Type
-        let return_type = if self.current_token == Token::Arrow {
-            self.advance();
-            self.skip_newlines();
-            if let Token::Identifier(t) = &self.current_token {
-                let ret = Some(t.clone());
-                self.advance();
-                ret
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-
-        self.skip_newlines();
-
-        // Parse function body (simplified - just collect until closing brace)
-        let mut body = String::new();
-        if self.current_token == Token::OpenBrace {
-            self.advance();
-            let mut brace_depth = 1;
-            while brace_depth > 0 && self.current_token != Token::Eof {
-                match &self.current_token {
-                    Token::OpenBrace => {
-                        brace_depth += 1;
-                        body.push('{');
-                    }
-                    Token::CloseBrace => {
-                        brace_depth -= 1;
-                        if brace_depth > 0 {
-                            body.push('}');
-                        }
-                    }
-                    Token::Identifier(s) => body.push_str(s),
-                    Token::This => body.push_str("this"),
-                    Token::Return => body.push_str("return"),
-                    Token::StringLiteral(s) => {
-                        body.push('"');
-                        body.push_str(s);
-                        body.push('"');
-                    }
-                    Token::NumberLiteral(n) => body.push_str(n),
-                    Token::Dot => body.push('.'),
-                    Token::Plus => body.push('+'),
-                    Token::Minus => body.push('-'),
-                    Token::Star => body.push('*'),
-                    Token::Slash => body.push('/'),
-                    Token::Equals => body.push('='),
-                    Token::Newline => body.push('\n'),
-                    _ => body.push(' '),
-                }
-                self.advance();
-            }
-        }
-
-        Some(DolNode::Function {
-            name,
-            params,
-            return_type,
-            body: body.trim().to_string(),
-            effectful,
-            line,
-        })
-    }
-
-    fn parse_field(&mut self) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'has'
-        self.skip_newlines();
-
-        let name = self.expect_identifier()?;
-        self.skip_newlines();
-
-        // Parse type: name: Type
-        let field_type = if self.current_token == Token::Colon {
-            self.advance();
-            self.skip_newlines();
-            if let Token::Identifier(t) = &self.current_token {
-                let ftype = t.clone();
-                self.advance();
-                ftype
-            } else {
-                "Unknown".to_string()
-            }
-        } else {
-            "Unknown".to_string()
-        };
-
-        self.skip_newlines();
-
-        // Parse default value: = value
-        let default_value = if self.current_token == Token::Equals {
-            self.advance();
-            self.skip_newlines();
-            match &self.current_token {
-                Token::StringLiteral(s) => {
-                    let val = Some(format!("\"{}\"", s));
-                    self.advance();
-                    val
-                }
-                Token::NumberLiteral(n) => {
-                    let val = Some(n.clone());
-                    self.advance();
-                    val
-                }
-                Token::Identifier(i) => {
-                    let val = Some(i.clone());
-                    self.advance();
-                    val
-                }
-                _ => None,
-            }
-        } else {
-            None
-        };
-
-        Some(DolNode::Field {
-            name,
-            field_type,
-            default_value,
-            line,
-        })
-    }
-
-    fn parse_constraint(&mut self) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'constraint'
-        self.skip_newlines();
-
-        let name = self.expect_identifier()?;
-        self.skip_newlines();
-
-        // Parse constraint body
-        let mut body = String::new();
-        if self.current_token == Token::OpenBrace {
-            self.advance();
-            let mut brace_depth = 1;
-            while brace_depth > 0 && self.current_token != Token::Eof {
-                match &self.current_token {
-                    Token::OpenBrace => {
-                        brace_depth += 1;
-                        body.push('{');
-                    }
-                    Token::CloseBrace => {
-                        brace_depth -= 1;
-                        if brace_depth > 0 {
-                            body.push('}');
-                        }
-                    }
-                    Token::Identifier(s) => body.push_str(s),
-                    Token::This => body.push_str("this"),
-                    Token::Dot => body.push('.'),
-                    Token::Newline => body.push('\n'),
-                    _ => body.push(' '),
-                }
-                self.advance();
-            }
-        }
-
-        Some(DolNode::Constraint {
-            name,
-            body: body.trim().to_string(),
-            line,
-        })
-    }
-
-    fn parse_exegesis(&mut self) -> Option<DolNode> {
-        let line = self.current_line;
-        self.advance(); // consume 'exegesis'
-        self.skip_newlines();
-
-        // Parse exegesis body
-        let mut content = String::new();
-        if self.current_token == Token::OpenBrace {
-            self.advance();
-            let mut brace_depth = 1;
-            while brace_depth > 0 && self.current_token != Token::Eof {
-                match &self.current_token {
-                    Token::OpenBrace => {
-                        brace_depth += 1;
-                        content.push('{');
-                    }
-                    Token::CloseBrace => {
-                        brace_depth -= 1;
-                        if brace_depth > 0 {
-                            content.push('}');
-                        }
-                    }
-                    Token::Identifier(s) => {
-                        if !content.is_empty()
-                            && !content.ends_with('\n')
-                            && !content.ends_with(' ')
-                        {
-                            content.push(' ');
-                        }
-                        content.push_str(s);
-                    }
-                    Token::Newline => content.push('\n'),
-                    _ => content.push(' '),
-                }
-                self.advance();
-            }
-        }
-
-        Some(DolNode::Exegesis {
-            content: content.trim().to_string(),
-            line,
-        })
-    }
-
-    fn parse(&mut self) -> Vec<DolNode> {
-        let mut nodes = Vec::new();
-
-        loop {
-            self.skip_newlines();
-
-            match &self.current_token {
-                Token::Eof => break,
-                Token::Spirit => {
-                    if let Some(spirit) = self.parse_spirit() {
-                        nodes.push(spirit);
-                    }
-                }
-                Token::Gene => {
-                    if let Some(gene) = self.parse_gene() {
-                        nodes.push(gene);
-                    }
-                }
-                Token::Comment(content) => {
-                    nodes.push(DolNode::Comment {
-                        content: content.clone(),
-                        line: self.current_line,
-                    });
-                    self.advance();
-                }
-                Token::Exegesis => {
-                    // Top-level exegesis (module documentation)
-                    if let Some(exegesis) = self.parse_exegesis() {
-                        nodes.push(exegesis);
-                    }
-                }
-                Token::Pub => {
-                    // Skip 'pub' modifier and continue parsing
-                    self.advance();
-                }
-                Token::Fun => {
-                    // Top-level pure function
-                    if let Some(func) = self.parse_function(false) {
-                        nodes.push(func);
-                    }
-                }
-                Token::Sex => {
-                    // Top-level effectful function (sex fun)
-                    self.advance();
-                    self.skip_newlines();
-                    if self.current_token == Token::Fun {
-                        if let Some(func) = self.parse_function(true) {
-                            nodes.push(func);
-                        }
-                    } else {
-                        self.add_error("Expected 'fun' after 'sex'", "SyntaxError");
-                    }
-                }
-                _ => {
-                    // Unknown top-level syntax
-                    if let Token::Identifier(content) = &self.current_token {
-                        self.warnings.push(format!(
-                            "Warning: Unexpected identifier '{}' at line {}",
-                            content, self.current_line
-                        ));
-                    }
-                    self.advance();
-                }
-            }
-        }
-
-        nodes
+/// Convert metadol Statement to browser-friendly StatementNode
+fn convert_statement(stmt: &Statement) -> StatementNode {
+    match stmt {
+        Statement::Has {
+            subject,
+            property,
+            ..
+        } => StatementNode::Has {
+            subject: subject.clone(),
+            property: property.clone(),
+        },
+        Statement::HasField(field) => StatementNode::HasField {
+            name: field.name.clone(),
+            field_type: format!("{:?}", field.type_),
+            default_value: field.default.as_ref().map(|v| format!("{:?}", v)),
+        },
+        Statement::Is {
+            subject, state, ..
+        } => StatementNode::Is {
+            subject: subject.clone(),
+            state: state.clone(),
+        },
+        Statement::DerivesFrom {
+            subject, origin, ..
+        } => StatementNode::DerivesFrom {
+            subject: subject.clone(),
+            origin: origin.clone(),
+        },
+        Statement::Requires {
+            subject,
+            requirement,
+            ..
+        } => StatementNode::Requires {
+            subject: subject.clone(),
+            requirement: requirement.clone(),
+        },
+        Statement::Uses { reference, .. } => StatementNode::Uses {
+            reference: reference.clone(),
+        },
+        Statement::Emits { action, event, .. } => StatementNode::Emits {
+            action: action.clone(),
+            event: event.clone(),
+        },
+        Statement::Matches {
+            subject, target, ..
+        } => StatementNode::Matches {
+            subject: subject.clone(),
+            target: target.clone(),
+        },
+        Statement::Never {
+            subject, action, ..
+        } => StatementNode::Never {
+            subject: subject.clone(),
+            action: action.clone(),
+        },
+        Statement::Quantified {
+            quantifier,
+            phrase,
+            ..
+        } => StatementNode::Quantified {
+            quantifier: match quantifier {
+                Quantifier::Each => "each".to_string(),
+                Quantifier::All => "all".to_string(),
+            },
+            phrase: phrase.clone(),
+        },
+        Statement::Function(func) => StatementNode::Function {
+            name: func.name.clone(),
+        },
     }
 }
 
-/// Validate bracket matching in DOL source
-fn validate_brackets(source: &str) -> Vec<CompileError> {
-    let mut errors = Vec::new();
-    let mut brace_stack: Vec<(char, usize, usize)> = Vec::new();
-    let mut paren_stack: Vec<(char, usize, usize)> = Vec::new();
-
-    let mut line = 1;
-    let mut column = 1;
-    let mut in_string = false;
-    let mut string_char = '"';
-    let mut prev_char = ' ';
-
-    for c in source.chars() {
-        if c == '\n' {
-            line += 1;
-            column = 1;
-            continue;
-        }
-
-        // Handle string literals
-        if !in_string && (c == '"' || c == '\'') {
-            in_string = true;
-            string_char = c;
-        } else if in_string && c == string_char && prev_char != '\\' {
-            in_string = false;
-        }
-
-        if !in_string {
-            match c {
-                '{' => brace_stack.push((c, line, column)),
-                '}' => {
-                    if brace_stack.pop().is_none() {
-                        errors.push(CompileError {
-                            message: "Unexpected closing brace '}'".to_string(),
-                            line,
-                            column,
-                            error_type: "BracketError".to_string(),
-                        });
-                    }
-                }
-                '(' => paren_stack.push((c, line, column)),
-                ')' => {
-                    if paren_stack.pop().is_none() {
-                        errors.push(CompileError {
-                            message: "Unexpected closing parenthesis ')'".to_string(),
-                            line,
-                            column,
-                            error_type: "BracketError".to_string(),
-                        });
-                    }
-                }
-                _ => {}
-            }
-        }
-
-        prev_char = c;
-        column += 1;
+/// Convert metadol Declaration to browser-friendly AstNode
+fn convert_declaration(decl: &Declaration) -> AstNode {
+    match decl {
+        Declaration::Gene(gene) => AstNode::Gene {
+            name: gene.name.clone(),
+            visibility: visibility_to_string(&gene.visibility),
+            extends: gene.extends.clone(),
+            statements: gene.statements.iter().map(convert_statement).collect(),
+            exegesis: gene.exegesis.clone(),
+            line: gene.span.line,
+        },
+        Declaration::Trait(trait_decl) => AstNode::Trait {
+            name: trait_decl.name.clone(),
+            visibility: visibility_to_string(&trait_decl.visibility),
+            statements: trait_decl
+                .statements
+                .iter()
+                .map(convert_statement)
+                .collect(),
+            exegesis: trait_decl.exegesis.clone(),
+            line: trait_decl.span.line,
+        },
+        Declaration::Constraint(constraint) => AstNode::Constraint {
+            name: constraint.name.clone(),
+            visibility: visibility_to_string(&constraint.visibility),
+            statements: constraint
+                .statements
+                .iter()
+                .map(convert_statement)
+                .collect(),
+            exegesis: constraint.exegesis.clone(),
+            line: constraint.span.line,
+        },
+        Declaration::System(system) => AstNode::System {
+            name: system.name.clone(),
+            visibility: visibility_to_string(&system.visibility),
+            version: system.version.clone(),
+            requirements: system
+                .requirements
+                .iter()
+                .map(|r| RequirementNode {
+                    name: r.name.clone(),
+                    constraint: r.constraint.clone(),
+                    version: r.version.clone(),
+                })
+                .collect(),
+            statements: system.statements.iter().map(convert_statement).collect(),
+            exegesis: system.exegesis.clone(),
+            line: system.span.line,
+        },
+        Declaration::Evolution(evolution) => AstNode::Evolution {
+            name: evolution.name.clone(),
+            version: evolution.version.clone(),
+            parent_version: evolution.parent_version.clone(),
+            additions: evolution.additions.iter().map(convert_statement).collect(),
+            deprecations: evolution
+                .deprecations
+                .iter()
+                .map(convert_statement)
+                .collect(),
+            removals: evolution.removals.clone(),
+            rationale: evolution.rationale.clone(),
+            exegesis: evolution.exegesis.clone(),
+            line: evolution.span.line,
+        },
+        Declaration::Function(func) => AstNode::Function {
+            name: func.name.clone(),
+            visibility: visibility_to_string(&func.visibility),
+            purity: match func.purity {
+                metadol::ast::Purity::Pure => "pure".to_string(),
+                metadol::ast::Purity::Sex => "sex".to_string(),
+            },
+            params: func
+                .params
+                .iter()
+                .map(|p| ParamNode {
+                    name: p.name.clone(),
+                    param_type: format!("{:?}", p.type_ann),
+                })
+                .collect(),
+            return_type: func.return_type.as_ref().map(|t| format!("{:?}", t)),
+            line: func.span.line,
+        },
+        Declaration::Const(const_decl) => AstNode::Const {
+            name: const_decl.name.clone(),
+            visibility: visibility_to_string(&const_decl.visibility),
+            const_type: const_decl.type_ann.as_ref().map(|t| format!("{:?}", t)),
+            line: const_decl.span.line,
+        },
+        Declaration::SexVar(var) => AstNode::Const {
+            name: var.name.clone(),
+            visibility: "private".to_string(),
+            const_type: var.type_ann.as_ref().map(|t| format!("{:?}", t)),
+            line: var.span.line,
+        },
     }
+}
 
-    // Check for unclosed brackets
-    for (_, line, column) in brace_stack {
-        errors.push(CompileError {
-            message: "Unclosed brace '{'".to_string(),
-            line,
-            column,
-            error_type: "BracketError".to_string(),
-        });
+/// Convert ParseError to CompileError
+fn convert_parse_error(err: &ParseError) -> CompileError {
+    let span = err.span();
+    CompileError {
+        message: err.to_string(),
+        line: span.line,
+        column: span.column,
+        error_type: "ParseError".to_string(),
     }
-
-    for (_, line, column) in paren_stack {
-        errors.push(CompileError {
-            message: "Unclosed parenthesis '('".to_string(),
-            line,
-            column,
-            error_type: "BracketError".to_string(),
-        });
-    }
-
-    errors
 }
 
 /// Compile DOL source code to an AST
 ///
 /// This is the main entry point for the WASM module.
-/// It parses the DOL source and returns a compilation result.
+/// It parses the DOL source using metadol and returns a compilation result.
 #[wasm_bindgen]
 pub fn compile_dol(source: &str) -> Result<JsValue, JsValue> {
-    // First validate brackets
-    let bracket_errors = validate_brackets(source);
+    let source_lines = source.lines().count();
 
-    // Parse the source
-    let mut parser = Parser::new(source);
-    let ast = parser.parse();
+    // Parse all declarations from the source
+    match parse_file_all(source) {
+        Ok(declarations) => {
+            // Convert to browser-friendly format
+            let ast: Vec<AstNode> = declarations.iter().map(convert_declaration).collect();
 
-    // Combine errors
-    let mut all_errors = bracket_errors;
-    all_errors.extend(parser.errors);
+            // Count declaration types
+            let mut gene_count = 0;
+            let mut trait_count = 0;
+            let mut constraint_count = 0;
+            let mut system_count = 0;
+            let mut function_count = 0;
 
-    // Count various node types
-    let spirit_count = ast
-        .iter()
-        .filter(|n| matches!(n, DolNode::Spirit { .. }))
-        .count();
-    let gene_count = ast
-        .iter()
-        .filter(|n| matches!(n, DolNode::Gene { .. }))
-        .count();
-    let function_count = ast
-        .iter()
-        .filter(|n| matches!(n, DolNode::Function { .. }))
-        .count();
-    let field_count = ast
-        .iter()
-        .filter(|n| matches!(n, DolNode::Field { .. }))
-        .count();
-    let constraint_count = ast
-        .iter()
-        .filter(|n| matches!(n, DolNode::Constraint { .. }))
-        .count();
+            for node in &ast {
+                match node {
+                    AstNode::Gene { .. } => gene_count += 1,
+                    AstNode::Trait { .. } => trait_count += 1,
+                    AstNode::Constraint { .. } => constraint_count += 1,
+                    AstNode::System { .. } => system_count += 1,
+                    AstNode::Function { .. } | AstNode::Const { .. } => function_count += 1,
+                    AstNode::Evolution { .. } => {}
+                }
+            }
 
-    let result = CompileResult {
-        success: all_errors.is_empty(),
-        ast,
-        errors: all_errors,
-        warnings: parser.warnings,
-        metadata: CompileMetadata {
-            version: "0.7.0".to_string(),
-            spirit_count,
-            gene_count,
-            function_count,
-            field_count,
-            constraint_count,
-            source_lines: source.lines().count(),
-        },
-    };
+            let result = CompileResult {
+                success: true,
+                ast,
+                errors: vec![],
+                warnings: vec![],
+                metadata: CompileMetadata {
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                    gene_count,
+                    trait_count,
+                    constraint_count,
+                    system_count,
+                    function_count,
+                    source_lines,
+                },
+            };
 
-    // Convert to JsValue using serde-wasm-bindgen
-    serde_wasm_bindgen::to_value(&result)
-        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+            serde_wasm_bindgen::to_value(&result)
+                .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+        }
+        Err(err) => {
+            let result = CompileResult {
+                success: false,
+                ast: vec![],
+                errors: vec![convert_parse_error(&err)],
+                warnings: vec![],
+                metadata: CompileMetadata {
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                    gene_count: 0,
+                    trait_count: 0,
+                    constraint_count: 0,
+                    system_count: 0,
+                    function_count: 0,
+                    source_lines,
+                },
+            };
+
+            serde_wasm_bindgen::to_value(&result)
+                .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+        }
+    }
+}
+
+/// Parse and validate DOL source code
+///
+/// Returns both the AST and validation results (warnings for empty exegesis, etc.)
+#[wasm_bindgen]
+pub fn compile_and_validate(source: &str) -> Result<JsValue, JsValue> {
+    let source_lines = source.lines().count();
+
+    match parse_and_validate(source) {
+        Ok((decl, validation)) => {
+            let ast = vec![convert_declaration(&decl)];
+
+            // Convert validation warnings to strings
+            let warnings: Vec<String> = validation.warnings.iter().map(|w| w.to_string()).collect();
+
+            let result = CompileResult {
+                success: validation.is_valid(),
+                ast,
+                errors: vec![],
+                warnings,
+                metadata: CompileMetadata {
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                    gene_count: if matches!(decl, Declaration::Gene(_)) {
+                        1
+                    } else {
+                        0
+                    },
+                    trait_count: if matches!(decl, Declaration::Trait(_)) {
+                        1
+                    } else {
+                        0
+                    },
+                    constraint_count: if matches!(decl, Declaration::Constraint(_)) {
+                        1
+                    } else {
+                        0
+                    },
+                    system_count: if matches!(decl, Declaration::System(_)) {
+                        1
+                    } else {
+                        0
+                    },
+                    function_count: if matches!(decl, Declaration::Function(_)) {
+                        1
+                    } else {
+                        0
+                    },
+                    source_lines,
+                },
+            };
+
+            serde_wasm_bindgen::to_value(&result)
+                .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+        }
+        Err(err) => {
+            let result = CompileResult {
+                success: false,
+                ast: vec![],
+                errors: vec![convert_parse_error(&err)],
+                warnings: vec![],
+                metadata: CompileMetadata {
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                    gene_count: 0,
+                    trait_count: 0,
+                    constraint_count: 0,
+                    system_count: 0,
+                    function_count: 0,
+                    source_lines,
+                },
+            };
+
+            serde_wasm_bindgen::to_value(&result)
+                .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+        }
+    }
 }
 
 /// Get the version of the DOL compiler
 #[wasm_bindgen]
 pub fn get_version() -> String {
-    "0.7.0".to_string()
+    env!("CARGO_PKG_VERSION").to_string()
 }
 
 /// Validate DOL source without full compilation
 /// Returns true if the source is syntactically valid
 #[wasm_bindgen]
 pub fn validate_dol(source: &str) -> bool {
-    let bracket_errors = validate_brackets(source);
-    if !bracket_errors.is_empty() {
-        return false;
-    }
-
-    let mut parser = Parser::new(source);
-    let _ = parser.parse();
-    parser.errors.is_empty()
+    parse_file(source).is_ok()
 }
 
 /// Format DOL source code (stub for future implementation)
 #[wasm_bindgen]
 pub fn format_dol(source: &str) -> String {
-    // TODO: Implement proper formatting
-    // For now, just return the source as-is
+    // TODO: Implement proper formatting using metadol
     source.to_string()
+}
+
+/// Result from compile_to_wasm containing bytecode or error
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WasmBytecodeResult {
+    /// Whether compilation was successful
+    pub success: bool,
+    /// WASM bytecode (only present on success)
+    pub bytecode: Option<Vec<u8>>,
+    /// Error message (only present on failure)
+    pub error: Option<String>,
+    /// Size of generated bytecode in bytes
+    pub bytecode_size: usize,
+}
+
+/// Compile DOL source code to WebAssembly bytecode
+///
+/// This function parses DOL source, then uses the WasmCompiler to emit
+/// actual WASM bytecode that can be instantiated via the browser's WebAssembly API.
+///
+/// # Example (JavaScript)
+///
+/// ```javascript
+/// const result = compile_to_wasm(dolSource);
+/// if (result.success) {
+///     const wasmModule = await WebAssembly.compile(result.bytecode);
+///     const instance = await WebAssembly.instantiate(wasmModule);
+///     // Call exported functions...
+/// }
+/// ```
+#[wasm_bindgen]
+pub fn compile_to_wasm(source: &str) -> Result<JsValue, JsValue> {
+    // Parse the DOL source
+    match parse_file_all(source) {
+        Ok(declarations) => {
+            if declarations.is_empty() {
+                let result = WasmBytecodeResult {
+                    success: false,
+                    bytecode: None,
+                    error: Some("No declarations found in source".to_string()),
+                    bytecode_size: 0,
+                };
+                return serde_wasm_bindgen::to_value(&result)
+                    .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)));
+            }
+
+            // Create WASM compiler with optimization enabled
+            let mut compiler = WasmCompiler::new().with_optimization(true);
+
+            // Compile the first declaration to WASM bytecode
+            // TODO: Support compiling multiple declarations into a single module
+            match compiler.compile(&declarations[0]) {
+                Ok(bytecode) => {
+                    let bytecode_size = bytecode.len();
+                    let result = WasmBytecodeResult {
+                        success: true,
+                        bytecode: Some(bytecode),
+                        error: None,
+                        bytecode_size,
+                    };
+                    serde_wasm_bindgen::to_value(&result)
+                        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+                }
+                Err(err) => {
+                    let result = WasmBytecodeResult {
+                        success: false,
+                        bytecode: None,
+                        error: Some(format!("WASM compilation error: {}", err)),
+                        bytecode_size: 0,
+                    };
+                    serde_wasm_bindgen::to_value(&result)
+                        .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+                }
+            }
+        }
+        Err(err) => {
+            let result = WasmBytecodeResult {
+                success: false,
+                bytecode: None,
+                error: Some(format!("Parse error: {}", err)),
+                bytecode_size: 0,
+            };
+            serde_wasm_bindgen::to_value(&result)
+                .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+        }
+    }
+}
+
+/// Compile DOL source to WASM bytecode and return as Uint8Array
+///
+/// This is a convenience function that returns the raw bytecode directly
+/// as a JavaScript Uint8Array, suitable for immediate use with WebAssembly.instantiate().
+///
+/// # Example (JavaScript)
+///
+/// ```javascript
+/// try {
+///     const wasmBytes = compile_to_wasm_bytes(dolSource);
+///     const wasmModule = await WebAssembly.instantiate(wasmBytes);
+/// } catch (err) {
+///     console.error("Compilation failed:", err);
+/// }
+/// ```
+#[wasm_bindgen]
+pub fn compile_to_wasm_bytes(source: &str) -> Result<Vec<u8>, JsValue> {
+    // Parse the DOL source
+    let declarations = parse_file_all(source)
+        .map_err(|err| JsValue::from_str(&format!("Parse error: {}", err)))?;
+
+    if declarations.is_empty() {
+        return Err(JsValue::from_str("No declarations found in source"));
+    }
+
+    // Create WASM compiler with optimization enabled
+    let mut compiler = WasmCompiler::new().with_optimization(true);
+
+    // Compile the first declaration to WASM bytecode
+    compiler
+        .compile(&declarations[0])
+        .map_err(|err| JsValue::from_str(&format!("WASM compilation error: {}", err)))
 }
 
 #[cfg(test)]
@@ -1069,154 +698,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_validate_brackets_valid() {
+    fn test_validate_simple_gene() {
         let source = r#"
-            spirit Counter @0.1.0 {
-                fun increment() {
-                    self.count = self.count + 1
-                }
-            }
-        "#;
-        let errors = validate_brackets(source);
-        assert!(errors.is_empty());
-    }
+gene Counter {
+    counter has value
+}
 
-    #[test]
-    fn test_validate_brackets_unclosed() {
-        let source = r#"
-            spirit Counter @0.1.0 {
-                fun increment() {
-                    self.count = self.count + 1
-            }
-        "#;
-        let errors = validate_brackets(source);
-        assert!(!errors.is_empty());
-    }
-
-    #[test]
-    fn test_parse_spirit_with_version() {
-        let source = r#"
-            spirit Counter @0.1.0 {
-                has count: Int = 0
-
-                fun increment() {
-                    self.count = self.count + 1
-                }
-            }
-        "#;
-        let mut parser = Parser::new(source);
-        let ast = parser.parse();
-
-        assert!(!ast.is_empty());
-        if let DolNode::Spirit {
-            name,
-            version,
-            body,
-            ..
-        } = &ast[0]
-        {
-            assert_eq!(name, "Counter");
-            assert_eq!(version, &Some("0.1.0".to_string()));
-            assert!(!body.is_empty());
-        } else {
-            panic!("Expected Spirit node");
-        }
-    }
-
-    #[test]
-    fn test_parse_gene() {
-        let source = r#"
-            gene ProcessId {
-                has value: Int
-
-                constraint positive {
-                    self.value > 0
-                }
-
-                fun get() -> Int {
-                    return self.value
-                }
-            }
-        "#;
-        let mut parser = Parser::new(source);
-        let ast = parser.parse();
-
-        assert!(!ast.is_empty());
-        if let DolNode::Gene { name, body, .. } = &ast[0] {
-            assert_eq!(name, "ProcessId");
-            // Should have field, constraint, and function
-            assert!(body.iter().any(|n| matches!(n, DolNode::Field { .. })));
-            assert!(body.iter().any(|n| matches!(n, DolNode::Constraint { .. })));
-            assert!(body.iter().any(|n| matches!(n, DolNode::Function { .. })));
-        } else {
-            panic!("Expected Gene node");
-        }
-    }
-
-    #[test]
-    fn test_parse_effectful_function() {
-        let source = r#"
-            sex fun print_hello() {
-                println("Hello")
-            }
-        "#;
-        let mut parser = Parser::new(source);
-        let ast = parser.parse();
-
-        assert!(!ast.is_empty());
-        if let DolNode::Function {
-            name, effectful, ..
-        } = &ast[0]
-        {
-            assert_eq!(name, "print_hello");
-            assert!(effectful);
-        } else {
-            panic!("Expected effectful Function node");
-        }
-    }
-
-    #[test]
-    fn test_parse_pure_function() {
-        let source = r#"
-            fun add(a: Int, b: Int) -> Int {
-                return a + b
-            }
-        "#;
-        let mut parser = Parser::new(source);
-        let ast = parser.parse();
-
-        assert!(!ast.is_empty());
-        if let DolNode::Function {
-            name,
-            effectful,
-            return_type,
-            ..
-        } = &ast[0]
-        {
-            assert_eq!(name, "add");
-            assert!(!effectful);
-            assert_eq!(return_type, &Some("Int".to_string()));
-        } else {
-            panic!("Expected pure Function node");
-        }
-    }
-
-    #[test]
-    fn test_validate_valid_source() {
-        let source = r#"
-            gene Counter {
-                has value: Int = 0
-
-                fun get() -> Int {
-                    return self.value
-                }
-            }
+exegesis {
+    A simple counter gene.
+}
         "#;
         assert!(validate_dol(source));
     }
 
     #[test]
+    fn test_validate_system_syntax() {
+        let source = r#"
+system Counter @ 0.1.0 {
+    requires base >= 0.0.1
+    all counters is tracked
+}
+
+exegesis {
+    A counter system.
+}
+        "#;
+        assert!(validate_dol(source));
+    }
+
+    #[test]
+    fn test_invalid_syntax() {
+        let source = r#"
+gene Unclosed {
+    has value
+        "#;
+        assert!(!validate_dol(source));
+    }
+
+    #[test]
     fn test_version() {
-        assert_eq!(get_version(), "0.7.0");
+        let version = get_version();
+        assert!(!version.is_empty());
     }
 }
