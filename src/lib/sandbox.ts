@@ -1,22 +1,34 @@
 // src/lib/sandbox.ts
 
+import { getSpiritRuntime, Spirit } from './spirit-runtime';
+
 export interface ExecutionResult {
   success: boolean;
   output: string;
   error?: string;
   executionTime: number;
+  spirit?: Spirit;
 }
 
 export interface SandboxOptions {
   timeout?: number; // ms, default 5000
+  spiritName?: string; // Name for the Spirit instance
 }
 
 const DEFAULT_TIMEOUT = 5000;
 
+// Track the current Spirit for REPL interactions
+let currentSpirit: Spirit | null = null;
+
 /**
- * Execute compiled WASM in a sandbox
- * For MVP, this simulates execution since we get AST results
- * Will execute real WASM when dol-wasm produces bytecode
+ * Get the currently loaded Spirit (for REPL use)
+ */
+export function getCurrentSpirit(): Spirit | null {
+  return currentSpirit;
+}
+
+/**
+ * Execute compiled WASM in the Spirit runtime
  */
 export async function executeWasm(
   wasm: Uint8Array | null,
@@ -41,20 +53,22 @@ export async function executeWasm(
         clearTimeout(timer);
         resolve({
           success: true,
-          output: '▸ Spirit executed successfully\n▸ No bytecode output (AST mode)',
+          output: '▸ No bytecode (AST-only mode)',
           executionTime: performance.now() - startTime,
         });
         return;
       }
 
-      // Real WASM execution
-      executeWasmInternal(wasm)
-        .then((output) => {
+      // Real WASM execution via SpiritRuntime
+      executeWithSpirit(wasm, options.spiritName)
+        .then(({ output, spirit }) => {
           clearTimeout(timer);
+          currentSpirit = spirit;
           resolve({
             success: true,
             output,
             executionTime: performance.now() - startTime,
+            spirit,
           });
         })
         .catch((err) => {
@@ -78,48 +92,59 @@ export async function executeWasm(
   });
 }
 
-async function executeWasmInternal(wasm: Uint8Array): Promise<string> {
+/**
+ * Execute WASM using the SpiritRuntime
+ */
+async function executeWithSpirit(
+  wasm: Uint8Array,
+  name?: string
+): Promise<{ output: string; spirit: Spirit }> {
+  const runtime = getSpiritRuntime();
   const output: string[] = [];
 
-  // Create import object with console capture
-  const importObject = {
-    env: {
-      print: (ptr: number, len: number) => {
-        // Would decode from WASM memory
-        output.push('[wasm output]');
-      },
-      log: (value: number) => {
-        output.push(`log: ${value}`);
-      },
-    },
-    wasi_snapshot_preview1: {
-      fd_write: () => 0,
-      fd_close: () => 0,
-      fd_seek: () => 0,
-      proc_exit: () => {},
-    },
-  };
+  // Load the WASM as a Spirit
+  const spirit = await runtime.loadWasm(wasm, name);
+  output.push(`⟡ Spirit "${spirit.name}" loaded`);
 
-  try {
-    // Create a clean ArrayBuffer copy to satisfy TypeScript's type requirements
-    const wasmBuffer = new ArrayBuffer(wasm.byteLength);
-    new Uint8Array(wasmBuffer).set(wasm);
-    const module = await WebAssembly.compile(wasmBuffer);
-    const instance = await WebAssembly.instantiate(module, importObject);
-
-    // Look for main or _start function
-    const exports = instance.exports;
-    if (typeof exports.main === 'function') {
-      const result = (exports.main as Function)();
-      output.push(`Result: ${result}`);
-    } else if (typeof exports._start === 'function') {
-      (exports._start as Function)();
-    }
-
-    return output.length > 0 ? output.join('\n') : '▸ Execution complete (no output)';
-  } catch (err) {
-    throw new Error(`WASM execution failed: ${err instanceof Error ? err.message : err}`);
+  // List exported functions
+  const exports = Array.from(spirit.exports.functions.keys());
+  if (exports.length > 0) {
+    output.push(`  Exports: ${exports.join(', ')}`);
   }
+
+  // Auto-execute main if present
+  if (spirit.exports.functions.has('main')) {
+    output.push('');
+    output.push('▸ Executing main()...');
+
+    try {
+      const result = runtime.execute(spirit, 'main', []);
+
+      // Show logs from execution
+      if (result.logs.length > 0) {
+        for (const log of result.logs) {
+          output.push(`  ${log}`);
+        }
+      }
+
+      // Show events
+      if (result.events.length > 0) {
+        for (const event of result.events) {
+          output.push(`  ⚡ ${event.name}: ${JSON.stringify(event.data)}`);
+        }
+      }
+
+      // Show return value
+      if (result.result !== undefined) {
+        output.push('');
+        output.push(`✓ main() → ${result.result}`);
+      }
+    } catch (err) {
+      output.push(`✗ Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return { output: output.join('\n'), spirit };
 }
 
 /**
