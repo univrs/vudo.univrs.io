@@ -34,17 +34,17 @@ docs {
 
 // Pure functions compile to WebAssembly
 fun add(a: i64, b: i64) -> i64 {
-    return a + b
+    a + b
 }
 
 fun multiply(x: i64, y: i64) -> i64 {
-    return x * y
+    x * y
 }
 
 // Main entry point
 fun main() -> i64 {
     let sum = add(40, 2)
-    return sum
+    sum
 }`,
     },
     {
@@ -61,15 +61,15 @@ docs {
     {
         name: "Function",
         code: `fun add(a: i64, b: i64) -> i64 {
-    return a + b
+    a + b
 }
 
 fun multiply(x: i64, y: i64) -> i64 {
-    return x * y
+    x * y
 }
 
 fun main() -> i64 {
-    return add(40, 2)
+    add(40, 2)
 }`,
     },
     {

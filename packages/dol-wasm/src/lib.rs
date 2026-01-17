@@ -13,7 +13,7 @@
 //! maintaining a separate parser implementation.
 
 use metadol::{
-    ast::{Declaration, Quantifier, Statement, Visibility},
+    ast::{Declaration, DolFile, Quantifier, Statement, Visibility},
     parse_and_validate, parse_file, parse_file_all,
     wasm::WasmCompiler,
     ParseError,
@@ -618,12 +618,11 @@ pub fn compile_to_wasm(source: &str) -> Result<JsValue, JsValue> {
             }
 
             // Filter to only function declarations (WASM compiler only supports functions)
-            let functions: Vec<_> = declarations
+            let has_functions = declarations
                 .iter()
-                .filter(|d| matches!(d, Declaration::Function(_)))
-                .collect();
+                .any(|d| matches!(d, Declaration::Function(_)));
 
-            if functions.is_empty() {
+            if !has_functions {
                 let result = WasmBytecodeResult {
                     success: false,
                     bytecode: None,
@@ -634,12 +633,18 @@ pub fn compile_to_wasm(source: &str) -> Result<JsValue, JsValue> {
                     .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)));
             }
 
+            // Create a DolFile from the declarations to support multiple functions
+            let dol_file = DolFile {
+                module: None,
+                uses: Vec::new(),
+                declarations: declarations.clone(),
+            };
+
             // Create WASM compiler with optimization enabled
             let mut compiler = WasmCompiler::new().with_optimization(true);
 
-            // Compile the first function declaration to WASM bytecode
-            // TODO: Support compiling multiple functions into a single module
-            match compiler.compile(functions[0]) {
+            // Compile ALL functions into a single WASM module
+            match compiler.compile_file(&dol_file) {
                 Ok(bytecode) => {
                     let bytecode_size = bytecode.len();
                     let result = WasmBytecodeResult {
@@ -701,12 +706,19 @@ pub fn compile_to_wasm_bytes(source: &str) -> Result<Vec<u8>, JsValue> {
         return Err(JsValue::from_str("No declarations found in source"));
     }
 
+    // Create a DolFile from the declarations to support multiple functions
+    let dol_file = DolFile {
+        module: None,
+        uses: Vec::new(),
+        declarations,
+    };
+
     // Create WASM compiler with optimization enabled
     let mut compiler = WasmCompiler::new().with_optimization(true);
 
-    // Compile the first declaration to WASM bytecode
+    // Compile ALL functions into a single WASM module
     compiler
-        .compile(&declarations[0])
+        .compile_file(&dol_file)
         .map_err(|err| JsValue::from_str(&format!("WASM compilation error: {}", err)))
 }
 

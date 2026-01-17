@@ -57,9 +57,9 @@ async function executeWasm(bytecode: Uint8Array, ast: object[]): Promise<Executi
     const exports = instance.exports;
     console.log('[Worker] WASM exports:', Object.keys(exports));
 
-    // Find pure functions from AST (non-effectful functions that can be executed)
+    // Find pure functions from AST (purity === 'pure' can be executed)
     const pureFunctions = ast.filter((node: any) =>
-      node.type === 'Function' && !node.effectful
+      node.type === 'Function' && node.purity === 'pure'
     ) as { name: string; params?: { name: string; type: string }[] }[];
 
     // Try to execute main() first if it exists
@@ -221,8 +221,9 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
         }
 
         // Step 2: Check if source has pure functions (for WASM codegen)
+        // Note: purity is "pure" or "sex" (lowercase strings from dol-wasm)
         const hasPureFunctions = parseResult.ast?.some(
-          (node: any) => node.type === 'Function' && node.purity !== 'SideEffect'
+          (node: any) => node.type === 'Function' && node.purity === 'pure'
         );
         console.log('[Worker] Has pure functions:', hasPureFunctions);
 
