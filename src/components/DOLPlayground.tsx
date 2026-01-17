@@ -20,25 +20,25 @@ interface Example {
 
 const examples: Example[] = [
     {
-        name: "Gene",
-        code: `gene Counter {
+        name: "Gen",
+        code: `gen Counter {
     counter has value
     counter has timestamp
 }
 
-exegesis {
-    A simple counter gene with value and timestamp.
+docs {
+    A simple counter gen with value and timestamp.
 }`,
     },
     {
         name: "Function",
-        code: `fun add(a: Int64, b: Int64) -> Int64 {
+        code: `fun add(a: i64, b: i64) -> i64 {
     return a + b
 }`,
     },
     {
         name: "Side Effect",
-        code: `sex fun log_message(msg: String) {
+        code: `sex fun log_message(msg: string) {
     print(msg)
 }`,
     },
@@ -50,7 +50,7 @@ exegesis {
     each counter has identity
 }
 
-exegesis {
+docs {
     A counter system that tracks all counter instances.
 }`,
     },
@@ -61,18 +61,18 @@ exegesis {
     identity is unique
 }
 
-exegesis {
+docs {
     Trait for entities that have unique identity.
 }`,
     },
     {
-        name: "Constraint",
-        code: `constraint Positive {
+        name: "Rule",
+        code: `rule Positive {
     value is positive
     value never negative
 }
 
-exegesis {
+docs {
     Ensures values are always positive.
 }`,
     },
@@ -98,13 +98,17 @@ interface Token {
 }
 
 const KEYWORDS = new Set([
-    "gene",
+    "gen",
+    "gene",  // legacy support
     "spirit",
     "trait",
     "system",
-    "constraint",
-    "evolves",
-    "exegesis",
+    "rule",
+    "constraint",  // legacy support
+    "evo",
+    "evolves",  // legacy support
+    "docs",
+    "exegesis",  // legacy support
     "fun",
     "sex",
     "return",
@@ -131,6 +135,20 @@ const KEYWORDS = new Set([
 ]);
 
 const TYPES = new Set([
+    // v0.8.0 primitive types
+    "i8",
+    "i16",
+    "i32",
+    "i64",
+    "u8",
+    "u16",
+    "u32",
+    "u64",
+    "f32",
+    "f64",
+    "bool",
+    "string",
+    // Legacy type names (for backwards compatibility)
     "Int",
     "Int8",
     "Int16",
@@ -147,7 +165,8 @@ const TYPES = new Set([
     "String",
     "Unit",
     "Any",
-    "List",
+    "Vec",
+    "List",  // legacy
     "Self",
     // GDL (Geometric Deep Learning) types
     "Array",
@@ -407,30 +426,30 @@ function formatCompilerOutput(output: CompilerOutput | null, error: string | nul
     for (const node of ast) {
         const visStr = node.visibility === "pub" ? "pub " : "";
 
-        if (node.type === "Gene") {
-            lines.push(`✓ ${visStr}gene ${node.name} validated`);
+        if (node.type === "Gene" || node.type === "Gen") {
+            lines.push(`✓ ${visStr}gen ${node.name} validated`);
             formatStatements(node.statements || [], lines, "  ");
             if (node.exegesis) {
-                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+                lines.push(`  └─ docs: "${node.exegesis.slice(0, 40)}..."`);
             }
         } else if (node.type === "Trait") {
             lines.push(`✓ ${visStr}trait ${node.name} validated`);
             formatStatements(node.statements || [], lines, "  ");
             if (node.exegesis) {
-                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+                lines.push(`  └─ docs: "${node.exegesis.slice(0, 40)}..."`);
             }
-        } else if (node.type === "Constraint") {
-            lines.push(`✓ ${visStr}constraint ${node.name} validated`);
+        } else if (node.type === "Constraint" || node.type === "Rule") {
+            lines.push(`✓ ${visStr}rule ${node.name} validated`);
             formatStatements(node.statements || [], lines, "  ");
             if (node.exegesis) {
-                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+                lines.push(`  └─ docs: "${node.exegesis.slice(0, 40)}..."`);
             }
         } else if (node.type === "System") {
             const versionStr = node.version ? ` @ ${node.version}` : "";
             lines.push(`✓ ${visStr}system ${node.name}${versionStr} validated`);
             formatStatements(node.statements || [], lines, "  ");
             if (node.exegesis) {
-                lines.push(`  └─ exegesis: "${node.exegesis.slice(0, 40)}..."`);
+                lines.push(`  └─ docs: "${node.exegesis.slice(0, 40)}..."`);
             }
         } else if (node.type === "Function") {
             const purityStr = node.purity === "sex" ? "sex " : "";
@@ -453,9 +472,9 @@ function formatCompilerOutput(output: CompilerOutput | null, error: string | nul
         lines.push(`→ ${metadata.source_lines} lines parsed`);
 
         const counts = [];
-        if (metadata.gene_count > 0) counts.push(`${metadata.gene_count} gene${metadata.gene_count > 1 ? 's' : ''}`);
+        if (metadata.gene_count > 0) counts.push(`${metadata.gene_count} gen${metadata.gene_count > 1 ? 's' : ''}`);
         if (metadata.trait_count > 0) counts.push(`${metadata.trait_count} trait${metadata.trait_count > 1 ? 's' : ''}`);
-        if (metadata.constraint_count > 0) counts.push(`${metadata.constraint_count} constraint${metadata.constraint_count > 1 ? 's' : ''}`);
+        if (metadata.constraint_count > 0) counts.push(`${metadata.constraint_count} rule${metadata.constraint_count > 1 ? 's' : ''}`);
         if (metadata.system_count > 0) counts.push(`${metadata.system_count} system${metadata.system_count > 1 ? 's' : ''}`);
         if (metadata.function_count > 0) counts.push(`${metadata.function_count} function${metadata.function_count > 1 ? 's' : ''}`);
 
@@ -603,7 +622,7 @@ export function DOLPlayground() {
                                     </span>
                                 </div>
                                 <span className="text-xs text-[#00ff88]/60 font-mono">
-                                    DOL v0.7.1
+                                    DOL v0.8.0
                                 </span>
                             </div>
 

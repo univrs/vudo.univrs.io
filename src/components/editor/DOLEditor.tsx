@@ -7,12 +7,12 @@ interface DOLEditorProps {
   onChange: (value: string) => void;
 }
 
-const DEFAULT_CODE = `// DOL v0.7.2 - Define a Gene with fields and methods
-gene Counter {
-  has value: Int = 0
+const DEFAULT_CODE = `// DOL v0.8.0 - Define a Gen with fields and methods
+gen Counter {
+  has value: i32 = 0
 
   // Pure function - no side effects
-  fun get() -> Int {
+  fun get() -> i32 {
     return this.value
   }
 

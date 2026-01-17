@@ -243,8 +243,8 @@ export function simulateExecution(ast: object, source?: string): ExecutionResult
 
     if (nodeType === 'spirit') {
       output.push(`⟡ Spirit "${nodeName}" loaded`);
-    } else if (nodeType === 'gene') {
-      output.push(`⧬ Gene "${nodeName}" instantiated`);
+    } else if (nodeType === 'gene' || nodeType === 'gen') {
+      output.push(`⧬ Gen "${nodeName}" instantiated`);
       for (const stmt of statements) {
         const kind = stmt.kind || stmt.type;
         if (kind === 'Has' || kind === 'HasField') {
@@ -255,8 +255,8 @@ export function simulateExecution(ast: object, source?: string): ExecutionResult
       }
     } else if (nodeType === 'trait') {
       output.push(`⚙ Trait "${nodeName}" defined`);
-    } else if (nodeType === 'constraint') {
-      output.push(`⛓ Constraint "${nodeName}" defined`);
+    } else if (nodeType === 'constraint' || nodeType === 'rule') {
+      output.push(`⛓ Rule "${nodeName}" defined`);
     }
   }
 

@@ -617,12 +617,29 @@ pub fn compile_to_wasm(source: &str) -> Result<JsValue, JsValue> {
                     .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)));
             }
 
+            // Filter to only function declarations (WASM compiler only supports functions)
+            let functions: Vec<_> = declarations
+                .iter()
+                .filter(|d| matches!(d, Declaration::Function(_)))
+                .collect();
+
+            if functions.is_empty() {
+                let result = WasmBytecodeResult {
+                    success: false,
+                    bytecode: None,
+                    error: Some("No function declarations found. WASM compilation requires at least one 'fun' declaration.".to_string()),
+                    bytecode_size: 0,
+                };
+                return serde_wasm_bindgen::to_value(&result)
+                    .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)));
+            }
+
             // Create WASM compiler with optimization enabled
             let mut compiler = WasmCompiler::new().with_optimization(true);
 
-            // Compile the first declaration to WASM bytecode
-            // TODO: Support compiling multiple declarations into a single module
-            match compiler.compile(&declarations[0]) {
+            // Compile the first function declaration to WASM bytecode
+            // TODO: Support compiling multiple functions into a single module
+            match compiler.compile(functions[0]) {
                 Ok(bytecode) => {
                     let bytecode_size = bytecode.len();
                     let result = WasmBytecodeResult {

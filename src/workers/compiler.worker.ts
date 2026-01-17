@@ -77,15 +77,22 @@ async function initWasm(): Promise<boolean> {
 
 self.onmessage = async (e: MessageEvent<CompileRequest>) => {
   const { type, source, requestId } = e.data;
+  console.log('[Worker] Received message:', type, 'requestId:', requestId);
+  console.log('[Worker] Source length:', source?.length, 'chars');
 
   if (type === 'compile') {
     const startTime = performance.now();
 
     // Try WASM compilation first
-    if (await initWasm()) {
+    const wasmReady = await initWasm();
+    console.log('[Worker] WASM ready:', wasmReady);
+
+    if (wasmReady) {
       try {
         // Step 1: Parse DOL to AST
+        console.log('[Worker] Calling compile_dol...');
         const parseResult = wasmModule.compile_dol(source);
+        console.log('[Worker] Parse result:', parseResult?.success, 'AST nodes:', parseResult?.ast?.length);
 
         // If parsing failed, return the errors
         if (!parseResult.success) {
@@ -104,6 +111,7 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
         const hasPureFunctions = parseResult.ast?.some(
           (node: any) => node.type === 'Function' && node.purity !== 'SideEffect'
         );
+        console.log('[Worker] Has pure functions:', hasPureFunctions);
 
         // Step 3: If we have pure functions, compile to WASM bytecode
         let bytecode: Uint8Array | null = null;
@@ -111,22 +119,30 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
 
         if (hasPureFunctions && wasmModule.compile_to_wasm) {
           try {
+            console.log('[Worker] Calling compile_to_wasm...');
             const wasmResult = wasmModule.compile_to_wasm(source);
+            console.log('[Worker] WASM result:', wasmResult?.success, 'bytecode size:', wasmResult?.bytecode?.length);
             if (wasmResult.success && wasmResult.bytecode) {
               bytecode = new Uint8Array(wasmResult.bytecode);
+              console.log('[Worker] Created bytecode Uint8Array:', bytecode.length, 'bytes');
             } else if (wasmResult.error) {
               wasmError = wasmResult.error;
+              console.log('[Worker] WASM error:', wasmError);
             }
           } catch (wasmErr) {
             // WASM codegen failed, but AST is still valid
             wasmError = wasmErr instanceof Error ? wasmErr.message : String(wasmErr);
+            console.error('[Worker] WASM compile exception:', wasmError);
           }
+        } else {
+          console.log('[Worker] Skipping WASM codegen - no pure functions or compile_to_wasm unavailable');
         }
 
         const compileTime = performance.now() - startTime;
+        console.log('[Worker] Compile time:', compileTime.toFixed(2), 'ms');
 
         // Return combined result with AST and optional bytecode
-        self.postMessage({
+        const response = {
           type: 'result',
           requestId,
           success: true,
@@ -136,7 +152,9 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
             wasmError,
           },
           compileTime,
-        } as CompileResult);
+        };
+        console.log('[Worker] Sending response with bytecode:', bytecode?.length ?? 'null');
+        self.postMessage(response as CompileResult);
       } catch (error) {
         const compileTime = performance.now() - startTime;
         self.postMessage({
@@ -175,16 +193,16 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
   }
 };
 
-// Simple DOL v0.7.0 syntax validator as fallback
+// Simple DOL v0.8.0 syntax validator as fallback
 function validateDolSyntax(source: string): { valid: boolean; error?: string; ast?: object[] } {
-  // Check for spirit or gene declaration
+  // Check for spirit, gen/gene declaration
   const hasSpirit = source.includes('spirit');
-  const hasGene = source.includes('gene');
+  const hasGen = /\bgen\s/.test(source) || source.includes('gene');  // Support both v0.8.0 'gen' and legacy 'gene'
   const hasFun = /\bfun\s/.test(source);
   const hasSexFun = /\bsex\s+fun\s/.test(source);
 
-  if (!hasSpirit && !hasGene && !hasFun) {
-    return { valid: false, error: 'Expected spirit, gene, or fun declaration' };
+  if (!hasSpirit && !hasGen && !hasFun) {
+    return { valid: false, error: 'Expected spirit, gen, or fun declaration' };
   }
 
   // Check bracket matching
@@ -219,32 +237,33 @@ function validateDolSyntax(source: string): { valid: boolean; error?: string; as
   const hasMatches = source.matchAll(/has\s+(\w+)\s*:/g);
   const fields = Array.from(hasMatches).map(m => ({ type: 'Field', name: m[1] }));
 
-  // Parse constraints
-  const constraintMatches = source.matchAll(/constraint\s+(\w+)\s*{/g);
-  const constraints = Array.from(constraintMatches).map(m => ({ type: 'Constraint', name: m[1] }));
+  // Parse rules/constraints (support both v0.8.0 'rule' and legacy 'constraint')
+  const ruleMatches = source.matchAll(/(?:rule|constraint)\s+(\w+)\s*{/g);
+  const rules = Array.from(ruleMatches).map(m => ({ type: 'Rule', name: m[1] }));
 
   // Parse spirit with version
   const spiritMatch = source.match(/spirit\s+(\w+)\s*(@[\d.]+)?/);
-  const geneMatch = source.match(/gene\s+(\w+)/);
+  // Support both v0.8.0 'gen' and legacy 'gene'
+  const genMatch = source.match(/(?:gen|gene)\s+(\w+)/);
 
   if (spiritMatch) {
     ast.push({
       type: 'Spirit',
       name: spiritMatch[1],
       version: spiritMatch[2]?.slice(1) || null,
-      body: [...fields, ...constraints, ...allFunctions]
+      body: [...fields, ...rules, ...allFunctions]
     });
   }
-  if (geneMatch) {
+  if (genMatch) {
     ast.push({
-      type: 'Gene',
-      name: geneMatch[1],
-      body: [...fields, ...constraints, ...allFunctions]
+      type: 'Gen',
+      name: genMatch[1],
+      body: [...fields, ...rules, ...allFunctions]
     });
   }
 
-  // Add standalone functions if no gene/spirit
-  if (!spiritMatch && !geneMatch && allFunctions.length > 0) {
+  // Add standalone functions if no gen/spirit
+  if (!spiritMatch && !genMatch && allFunctions.length > 0) {
     ast.push(...allFunctions);
   }
 

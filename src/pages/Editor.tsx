@@ -8,28 +8,28 @@ import { simulateExecution, executeWasm, ExecutionResult } from '../lib/sandbox'
 
 const DEFAULT_CODE = `// DOL Playground - Try editing this code!
 
-// A Gene defines ontological structure
-gene Calculator {
+// A Gen defines ontological structure
+gen Calculator {
     calculator has value
     calculator has history
     calculator is stateful
 }
 
-exegesis {
-    A Calculator gene stores a value and tracks computation history.
+docs {
+    A Calculator gen stores a value and tracks computation history.
 }
 
 // Pure functions compile to WebAssembly
-fun add(a: Int64, b: Int64) -> Int64 {
+fun add(a: i64, b: i64) -> i64 {
     return a + b
 }
 
-fun multiply(x: Int64, y: Int64) -> Int64 {
+fun multiply(x: i64, y: i64) -> i64 {
     return x * y
 }
 
 // Side-effect functions for I/O
-sex fun log_result(result: Int64) {
+sex fun log_result(result: i64) {
     emit calculation_complete(result)
 }
 
@@ -69,13 +69,17 @@ export function Editor() {
 
   // Auto-execute after successful compilation
   useEffect(() => {
+    console.log('[Editor] Compiler status changed:', compiler.status);
     if (compiler.status === 'success' && compiler.result) {
       const result = compiler.result as any;
+      console.log('[Editor] Compiler result:', result);
+      console.log('[Editor] Bytecode:', result.bytecode?.length ?? 'null');
       if (result.success && result.ast) {
         setIsExecuting(true);
 
         // Check if we have real WASM bytecode for Spirit execution
         if (result.bytecode && result.bytecode.length > 0) {
+          console.log('[Editor] Using real WASM execution with', result.bytecode.length, 'bytes');
           // Real WASM execution via SpiritRuntime
           executeWasm(result.bytecode, { spiritName: 'playground-spirit' })
             .then((execResult) => {
@@ -91,7 +95,9 @@ export function Editor() {
             });
         } else {
           // No bytecode - use AST simulation
+          console.log('[Editor] Using AST simulation (no bytecode)');
           const execResult = simulateExecution(result.ast, code);
+          console.log('[Editor] Simulation result:', execResult);
           setExecutionResult(execResult);
           setIsExecuting(false);
         }
@@ -136,8 +142,8 @@ export function Editor() {
             const nodeName = node.name || 'anonymous';
 
             // Handle different declaration types from metadol
-            if (nodeType === 'gene') {
-              lines.push(`├─ gene ${nodeName}`);
+            if (nodeType === 'gene' || nodeType === 'gen') {
+              lines.push(`├─ gen ${nodeName}`);
               const statements = node.statements || node.body || [];
               for (let i = 0; i < statements.length; i++) {
                 const stmt = statements[i];
@@ -162,8 +168,8 @@ export function Editor() {
                   lines.push(`${prefix} ${stmt.subject || ''} requires ${stmt.requirement || ''}`);
                 }
               }
-            } else if (nodeType === 'constraint') {
-              lines.push(`├─ constraint ${nodeName}`);
+            } else if (nodeType === 'constraint' || nodeType === 'rule') {
+              lines.push(`├─ rule ${nodeName}`);
               const statements = node.statements || node.body || [];
               for (let i = 0; i < statements.length; i++) {
                 const stmt = statements[i];
@@ -214,9 +220,9 @@ export function Editor() {
               lines.push(`├─ ${nodeType} ${nodeName}`);
             }
 
-            // Show exegesis if present
+            // Show docs if present
             if (node.exegesis) {
-              lines.push(`│  └─ exegesis: "${node.exegesis.slice(0, 50)}${node.exegesis.length > 50 ? '...' : ''}"`);
+              lines.push(`│  └─ docs: "${node.exegesis.slice(0, 50)}${node.exegesis.length > 50 ? '...' : ''}"`);
             }
           }
         }

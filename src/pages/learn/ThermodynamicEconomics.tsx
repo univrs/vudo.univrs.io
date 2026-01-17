@@ -107,20 +107,20 @@ function IntroSection({ onNext }: { onNext: () => void }) {
 
       <CodeBlock
         title="DOL Schema (eroei.dol)"
-        code={`gene EnergySystemMetrics {
-    has total_output_kwh: Float
-    has total_input_kwh: Float
-    has component_count: Int
+        code={`gen EnergySystemMetrics {
+    has total_output_kwh: f64
+    has total_input_kwh: f64
+    has component_count: i32
 
-    constraint positive_output {
+    rule positive_output {
         this.total_output_kwh >= 0.0
     }
 
-    fun system_eroei() -> Float {
+    fun system_eroei() -> f64 {
         return this.total_output_kwh / this.total_input_kwh
     }
 
-    fun is_viable() -> Bool {
+    fun is_viable() -> bool {
         return this.system_eroei() >= 7.0
     }
 }`}
