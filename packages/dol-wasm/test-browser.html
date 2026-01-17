@@ -99,7 +99,7 @@
 // Genes/traits/constraints are structural - they parse but don't compile to WASM.
 
 // This WILL compile to WASM (DOL uses 'fun' keyword):
-fun add(a: Int64, b: Int64) -> Int64 {
+fun add(a: i64, b: i64) -> i64 {
     return a + b
 }</textarea>
         <br>
@@ -152,12 +152,12 @@ fun add(a: Int64, b: Int64) -> Int64 {
 
             // Test source code
             const testSource = `
-gene container.exists {
+gen container.exists {
     container has identity
     container has created_at
 }
 
-exegesis {
+docs {
     A container exists with identity and creation timestamp.
 }`;
 
@@ -186,7 +186,7 @@ exegesis {
                 log('validate-output', `Valid: ${valid}`, valid ? 'success' : 'error');
 
                 // Test invalid syntax
-                const invalidSource = 'gene Unclosed { has value';
+                const invalidSource = 'gen Unclosed { has value';
                 const invalidResult = validate_dol(invalidSource);
                 log('validate-output', `Invalid syntax correctly rejected: ${!invalidResult}`, !invalidResult ? 'success' : 'error');
 
@@ -203,7 +203,7 @@ exegesis {
                 // DOL with a function (required for WASM codegen)
                 // DOL uses 'fun' keyword for function declarations
                 const funcSource = `
-fun add(a: Int64, b: Int64) -> Int64 {
+fun add(a: i64, b: i64) -> i64 {
     return a + b
 }`;
 

@@ -717,11 +717,11 @@ mod tests {
     #[test]
     fn test_validate_simple_gene() {
         let source = r#"
-gene Counter {
+gen Counter {
     counter has value
 }
 
-exegesis {
+docs {
     A simple counter gene.
 }
         "#;
@@ -736,7 +736,7 @@ system Counter @ 0.1.0 {
     all counters is tracked
 }
 
-exegesis {
+docs {
     A counter system.
 }
         "#;
@@ -746,7 +746,7 @@ exegesis {
     #[test]
     fn test_invalid_syntax() {
         let source = r#"
-gene Unclosed {
+gen Unclosed {
     has value
         "#;
         assert!(!validate_dol(source));

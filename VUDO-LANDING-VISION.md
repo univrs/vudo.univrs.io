@@ -97,14 +97,14 @@ What if specification preceded implementation?
 
 DOL — Design Ontology Language
 
-gene ProcessId {
-  type: UInt64
-  
-  constraint positive {
+gen ProcessId {
+  type: u64
+
+  rule positive {
     this.value > 0
   }
-  
-  exegesis {
+
+  docs {
     A process knows its identity.
     A process knows its bounds.
     A process carries its meaning.
