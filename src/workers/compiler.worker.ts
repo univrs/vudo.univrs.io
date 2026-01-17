@@ -91,29 +91,42 @@ async function executeWasm(bytecode: Uint8Array, ast: object[]): Promise<Executi
         try {
           // Generate sample args based on function parameters
           const argCount = fn.params?.length || (exportedFn as Function).length || 0;
-          let sampleArgs: number[] = [];
+          let sampleValues: number[] = [];
 
           // Use meaningful sample values for common function names
           if (fn.name === 'add') {
-            sampleArgs = [40, 2]; // Classic: 40 + 2 = 42
+            sampleValues = [40, 2]; // Classic: 40 + 2 = 42
           } else if (fn.name === 'multiply') {
-            sampleArgs = [6, 7]; // Classic: 6 * 7 = 42
+            sampleValues = [6, 7]; // Classic: 6 * 7 = 42
           } else if (fn.name === 'subtract') {
-            sampleArgs = [50, 8]; // 50 - 8 = 42
+            sampleValues = [50, 8]; // 50 - 8 = 42
           } else if (fn.name === 'divide') {
-            sampleArgs = [84, 2]; // 84 / 2 = 42
+            sampleValues = [84, 2]; // 84 / 2 = 42
           } else {
             // Default: use small positive integers
-            sampleArgs = Array(argCount).fill(0).map((_, i) => i + 1);
+            sampleValues = Array(argCount).fill(0).map((_, i) => i + 1);
           }
 
-          const fnResult = (exportedFn as Function)(...sampleArgs);
+          // Convert args to BigInt for 64-bit types
+          // Parameter type format: { name: string, param_type: string } where param_type is like "Named(\"i64\")"
+          const convertedArgs: (number | bigint)[] = sampleValues.map((val, idx) => {
+            const param = fn.params?.[idx] as { name?: string; param_type?: string } | undefined;
+            const paramType = param?.param_type || '';
+            console.log(`[Worker] Param ${idx}: type="${paramType}"`);
+            // Check if type contains i64 or i128 (needs BigInt) - handles both "i64" and "Named(\"i64\")"
+            if (paramType.includes('64') || paramType.includes('128')) {
+              return BigInt(val);
+            }
+            return val;
+          });
+
+          const fnResult = (exportedFn as Function)(...convertedArgs);
           results.push({
             functionName: fn.name,
-            args: sampleArgs,
+            args: sampleValues, // Store original numbers for display
             result: fnResult
           });
-          console.log(`[Worker] ${fn.name}(${sampleArgs.join(', ')}) =`, fnResult);
+          console.log(`[Worker] ${fn.name}(${sampleValues.join(', ')}) =`, fnResult);
         } catch (e) {
           results.push({
             functionName: fn.name,
