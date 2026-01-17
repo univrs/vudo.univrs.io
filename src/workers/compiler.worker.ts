@@ -7,6 +7,13 @@ interface CompileRequest {
   requestId: string;
 }
 
+interface ExecutionResult {
+  functionName: string;
+  args: number[];
+  result: number | bigint | null;
+  error?: string;
+}
+
 interface CompileResult {
   type: 'result';
   requestId: string;
@@ -15,6 +22,7 @@ interface CompileResult {
     bytecode: Uint8Array | null;
     messages: string[];
     ast?: object;
+    execution?: ExecutionResult[];
   };
   error?: string;
   compileTime: number;
@@ -23,6 +31,111 @@ interface CompileResult {
 let initialized = false;
 let wasmModule: any = null;
 let initPromise: Promise<boolean> | null = null;
+
+/**
+ * Execute WASM bytecode and return results from exported functions
+ */
+async function executeWasm(bytecode: Uint8Array, ast: object[]): Promise<ExecutionResult[]> {
+  const results: ExecutionResult[] = [];
+
+  try {
+    // Instantiate the WASM module
+    // WebAssembly.instantiate with BufferSource returns { module, instance }
+    const { instance } = await WebAssembly.instantiate(
+      bytecode.buffer as ArrayBuffer,
+      {
+        env: {
+          // Provide basic env imports that might be needed
+          abort: () => console.error('WASM abort called'),
+          emit: (eventId: number, value: bigint) => {
+            console.log(`[WASM] emit event ${eventId}: ${value}`);
+          }
+        }
+      }
+    );
+
+    const exports = instance.exports;
+    console.log('[Worker] WASM exports:', Object.keys(exports));
+
+    // Find pure functions from AST (non-effectful functions that can be executed)
+    const pureFunctions = ast.filter((node: any) =>
+      node.type === 'Function' && !node.effectful
+    ) as { name: string; params?: { name: string; type: string }[] }[];
+
+    // Try to execute main() first if it exists
+    if (typeof exports.main === 'function') {
+      try {
+        const mainResult = (exports.main as () => number | bigint)();
+        results.push({
+          functionName: 'main',
+          args: [],
+          result: mainResult
+        });
+        console.log('[Worker] main() =', mainResult);
+      } catch (e) {
+        results.push({
+          functionName: 'main',
+          args: [],
+          result: null,
+          error: e instanceof Error ? e.message : String(e)
+        });
+      }
+    }
+
+    // Execute other exported pure functions with sample arguments for demonstration
+    for (const fn of pureFunctions) {
+      if (fn.name === 'main') continue; // Already handled
+
+      const exportedFn = exports[fn.name];
+      if (typeof exportedFn === 'function') {
+        try {
+          // Generate sample args based on function parameters
+          const argCount = fn.params?.length || (exportedFn as Function).length || 0;
+          let sampleArgs: number[] = [];
+
+          // Use meaningful sample values for common function names
+          if (fn.name === 'add') {
+            sampleArgs = [40, 2]; // Classic: 40 + 2 = 42
+          } else if (fn.name === 'multiply') {
+            sampleArgs = [6, 7]; // Classic: 6 * 7 = 42
+          } else if (fn.name === 'subtract') {
+            sampleArgs = [50, 8]; // 50 - 8 = 42
+          } else if (fn.name === 'divide') {
+            sampleArgs = [84, 2]; // 84 / 2 = 42
+          } else {
+            // Default: use small positive integers
+            sampleArgs = Array(argCount).fill(0).map((_, i) => i + 1);
+          }
+
+          const fnResult = (exportedFn as Function)(...sampleArgs);
+          results.push({
+            functionName: fn.name,
+            args: sampleArgs,
+            result: fnResult
+          });
+          console.log(`[Worker] ${fn.name}(${sampleArgs.join(', ')}) =`, fnResult);
+        } catch (e) {
+          results.push({
+            functionName: fn.name,
+            args: [],
+            result: null,
+            error: e instanceof Error ? e.message : String(e)
+          });
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Worker] WASM execution failed:', e);
+    results.push({
+      functionName: '_instantiation',
+      args: [],
+      result: null,
+      error: e instanceof Error ? e.message : String(e)
+    });
+  }
+
+  return results;
+}
 
 async function initWasm(): Promise<boolean> {
   if (initialized) return true;
@@ -138,10 +251,28 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
           console.log('[Worker] Skipping WASM codegen - no pure functions or compile_to_wasm unavailable');
         }
 
+        // Step 4: Execute WASM bytecode if available
+        let execution: ExecutionResult[] = [];
+        if (bytecode && bytecode.length > 0) {
+          console.log('[Worker] Executing WASM bytecode...');
+          try {
+            execution = await executeWasm(bytecode, parseResult.ast || []);
+            console.log('[Worker] Execution results:', execution.length, 'functions');
+          } catch (execErr) {
+            console.error('[Worker] Execution failed:', execErr);
+            execution = [{
+              functionName: '_execution',
+              args: [],
+              result: null,
+              error: execErr instanceof Error ? execErr.message : String(execErr)
+            }];
+          }
+        }
+
         const compileTime = performance.now() - startTime;
         console.log('[Worker] Compile time:', compileTime.toFixed(2), 'ms');
 
-        // Return combined result with AST and optional bytecode
+        // Return combined result with AST, bytecode, and execution results
         const response = {
           type: 'result',
           requestId,
@@ -150,10 +281,11 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
             ...parseResult,
             bytecode,
             wasmError,
+            execution,
           },
           compileTime,
         };
-        console.log('[Worker] Sending response with bytecode:', bytecode?.length ?? 'null');
+        console.log('[Worker] Sending response with bytecode:', bytecode?.length ?? 'null', 'execution:', execution.length);
         self.postMessage(response as CompileResult);
       } catch (error) {
         const compileTime = performance.now() - startTime;

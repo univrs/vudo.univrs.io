@@ -20,6 +20,34 @@ interface Example {
 
 const examples: Example[] = [
     {
+        name: "Calculator",
+        code: `// A Gen defines ontological structure
+gen Calculator {
+    calculator has value
+    calculator has history
+    calculator is stateful
+}
+
+docs {
+    A Calculator gen stores a value and tracks history.
+}
+
+// Pure functions compile to WebAssembly
+fun add(a: i64, b: i64) -> i64 {
+    return a + b
+}
+
+fun multiply(x: i64, y: i64) -> i64 {
+    return x * y
+}
+
+// Main entry point
+fun main() -> i64 {
+    let sum = add(40, 2)
+    return sum
+}`,
+    },
+    {
         name: "Gen",
         code: `gen Counter {
     counter has value
@@ -34,6 +62,14 @@ docs {
         name: "Function",
         code: `fun add(a: i64, b: i64) -> i64 {
     return a + b
+}
+
+fun multiply(x: i64, y: i64) -> i64 {
+    return x * y
+}
+
+fun main() -> i64 {
+    return add(40, 2)
 }`,
     },
     {
@@ -383,11 +419,20 @@ interface ASTNode {
     line?: number;
 }
 
+interface ExecutionResult {
+    functionName: string;
+    args: number[];
+    result: number | bigint | null;
+    error?: string;
+}
+
 interface CompilerOutput {
     success: boolean;
     ast?: ASTNode[];
     errors?: { message: string; line: number; column: number }[];
     warnings?: string[];
+    execution?: ExecutionResult[];
+    bytecode?: Uint8Array | null;
     metadata?: {
         version: string;
         gene_count: number;
@@ -490,6 +535,30 @@ function formatCompilerOutput(output: CompilerOutput | null, error: string | nul
         for (const warning of output.warnings) {
             lines.push(`  ${warning}`);
         }
+    }
+
+    // Add WASM execution results
+    if (output.execution && output.execution.length > 0) {
+        lines.push("");
+        lines.push("═".repeat(40));
+        lines.push("⚡ WASM Execution Results");
+        lines.push("─".repeat(40));
+
+        for (const exec of output.execution) {
+            if (exec.error) {
+                lines.push(`✗ ${exec.functionName}() → error: ${exec.error}`);
+            } else if (exec.result !== null) {
+                if (exec.args.length > 0) {
+                    lines.push(`▶ ${exec.functionName}(${exec.args.join(', ')}) → ${exec.result}`);
+                } else {
+                    lines.push(`▶ ${exec.functionName}() → ${exec.result}`);
+                }
+            }
+        }
+    } else if (output.bytecode && output.bytecode.length > 0) {
+        // Bytecode was generated but not executed (shouldn't happen normally)
+        lines.push("");
+        lines.push(`→ WASM bytecode: ${output.bytecode.length} bytes`);
     }
 
     return lines.join("\n");
