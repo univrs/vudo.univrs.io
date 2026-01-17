@@ -84,14 +84,57 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
     // Try WASM compilation first
     if (await initWasm()) {
       try {
-        const result = wasmModule.compile_dol(source);
+        // Step 1: Parse DOL to AST
+        const parseResult = wasmModule.compile_dol(source);
+
+        // If parsing failed, return the errors
+        if (!parseResult.success) {
+          const compileTime = performance.now() - startTime;
+          self.postMessage({
+            type: 'result',
+            requestId,
+            success: true,
+            output: parseResult,
+            compileTime,
+          } as CompileResult);
+          return;
+        }
+
+        // Step 2: Check if source has pure functions (for WASM codegen)
+        const hasPureFunctions = parseResult.ast?.some(
+          (node: any) => node.type === 'Function' && node.purity !== 'SideEffect'
+        );
+
+        // Step 3: If we have pure functions, compile to WASM bytecode
+        let bytecode: Uint8Array | null = null;
+        let wasmError: string | null = null;
+
+        if (hasPureFunctions && wasmModule.compile_to_wasm) {
+          try {
+            const wasmResult = wasmModule.compile_to_wasm(source);
+            if (wasmResult.success && wasmResult.bytecode) {
+              bytecode = new Uint8Array(wasmResult.bytecode);
+            } else if (wasmResult.error) {
+              wasmError = wasmResult.error;
+            }
+          } catch (wasmErr) {
+            // WASM codegen failed, but AST is still valid
+            wasmError = wasmErr instanceof Error ? wasmErr.message : String(wasmErr);
+          }
+        }
+
         const compileTime = performance.now() - startTime;
 
+        // Return combined result with AST and optional bytecode
         self.postMessage({
           type: 'result',
           requestId,
           success: true,
-          output: result,
+          output: {
+            ...parseResult,
+            bytecode,
+            wasmError,
+          },
           compileTime,
         } as CompileResult);
       } catch (error) {

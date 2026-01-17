@@ -4,7 +4,7 @@ import { OutputPanel } from '../components/editor/OutputPanel';
 import { StatusBar } from '../components/editor/StatusBar';
 import { useCompiler, CompileStatus as HookCompileStatus } from '../hooks/useCompiler';
 import { useIdentity } from '../hooks/useIdentity';
-import { simulateExecution, ExecutionResult } from '../lib/sandbox';
+import { simulateExecution, executeWasm, ExecutionResult } from '../lib/sandbox';
 
 const DEFAULT_CODE = `// DOL Playground - Try editing this code!
 
@@ -73,10 +73,28 @@ export function Editor() {
       const result = compiler.result as any;
       if (result.success && result.ast) {
         setIsExecuting(true);
-        // Simulate execution with source code for accurate values
-        const execResult = simulateExecution(result.ast, code);
-        setExecutionResult(execResult);
-        setIsExecuting(false);
+
+        // Check if we have real WASM bytecode for Spirit execution
+        if (result.bytecode && result.bytecode.length > 0) {
+          // Real WASM execution via SpiritRuntime
+          executeWasm(result.bytecode, { spiritName: 'playground-spirit' })
+            .then((execResult) => {
+              setExecutionResult(execResult);
+              setIsExecuting(false);
+            })
+            .catch((err) => {
+              // Fall back to simulation on WASM execution error
+              console.warn('WASM execution failed, falling back to simulation:', err);
+              const simResult = simulateExecution(result.ast, code);
+              setExecutionResult(simResult);
+              setIsExecuting(false);
+            });
+        } else {
+          // No bytecode - use AST simulation
+          const execResult = simulateExecution(result.ast, code);
+          setExecutionResult(execResult);
+          setIsExecuting(false);
+        }
       }
     }
   }, [compiler.status, compiler.result, code]);
@@ -212,6 +230,12 @@ export function Editor() {
           }
         }
 
+        // Show bytecode status
+        if (result.bytecode && result.bytecode.length > 0) {
+          lines.push('');
+          lines.push(`⟡ WASM bytecode: ${result.bytecode.length} bytes`);
+        }
+
         // Show compile time
         if (compileTime) {
           lines.push('');
@@ -224,7 +248,9 @@ export function Editor() {
           lines.push('─'.repeat(40));
           lines.push('');
           if (executionResult.success) {
-            lines.push('▶ Execution:');
+            // Indicate if this was real WASM or simulation
+            const execMode = executionResult.spirit ? '⟡ Spirit Execution:' : '▶ Simulated Execution:';
+            lines.push(execMode);
             lines.push(executionResult.output);
             lines.push(`→ Execution time: ${executionResult.executionTime.toFixed(1)}ms`);
           } else {
