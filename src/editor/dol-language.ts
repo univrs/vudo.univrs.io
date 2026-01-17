@@ -103,9 +103,13 @@ const dolKeywords = {
     'manifest', 'incarnate', 'transcend', 'from', 'as', 'pub', 'use',
   ],
 
-  // Types & Data (15 keywords)
+  // Types & Data (20+ keywords) - v0.8.0 keywords first, legacy after
   types: [
-    'gene', 'trait', 'impl', 'self', 'Self', 'where', 'for',
+    'gen', 'gene',  // gen = v0.8.0, gene = legacy
+    'trait', 'rule', 'constraint',  // rule = v0.8.0, constraint = legacy
+    'system', 'evo', 'evolves',  // evo = v0.8.0, evolves = legacy
+    'docs', 'exegesis',  // docs = v0.8.0, exegesis = legacy
+    'impl', 'self', 'Self', 'where', 'for',
     'enum', 'struct', 'union', 'type', 'const', 'static', 'mut',
     'let', 'ref', 'move', 'has',
   ],
