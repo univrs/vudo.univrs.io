@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import initWasm, * as wasmBindings from '../../../wasm/game-of-life/game_of_life.js';
 
 // Configuration
 const CONFIG = {
@@ -10,23 +11,9 @@ const CONFIG = {
   colors: { dead: '#1a1a2e', alive: '#00ff88' }
 };
 
-interface WasmModule {
-  init: (width: number, height: number, wrap: boolean) => void;
-  step: () => void;
-  reset: () => void;
-  randomize_grid: (density: number) => void;
-  get_cells: () => Uint8Array;
-  get_width: () => number;
-  get_generation: () => number;
-  get_alive_count: () => number;
-  toggle_cell: (x: number, y: number) => void;
-  set_cell_state: (x: number, y: number, state: boolean) => void;
-  load_pattern: (pattern: string, x: number, y: number) => void;
-}
-
 export function GameOfLife() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wasmRef = useRef<WasmModule | null>(null);
+  const [wasmReady, setWasmReady] = useState(false);
   const [running, setRunning] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [aliveCount, setAliveCount] = useState(0);
@@ -40,31 +27,11 @@ export function GameOfLife() {
   useEffect(() => {
     async function loadWasm() {
       try {
-        const wasmPath = '/demos/game-of-life/game_of_life_bg.wasm';
-        const response = await fetch(wasmPath);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch WASM: ${response.status}`);
-        }
-
-        const wasmBytes = await response.arrayBuffer();
-
-        // Check WASM magic number
-        const magic = new Uint8Array(wasmBytes.slice(0, 4));
-        if (magic[0] !== 0x00 || magic[1] !== 0x61 || magic[2] !== 0x73 || magic[3] !== 0x6d) {
-          throw new Error('Invalid WASM file');
-        }
-
-        // Dynamic import from public directory (bypass TS static analysis)
-        const jsPath = '/demos/game-of-life/game_of_life.js';
-        const js = await import(/* @vite-ignore */ jsPath);
-        await js.default(wasmBytes);
-
-        wasmRef.current = js as unknown as WasmModule;
-        wasmRef.current.init(CONFIG.gridSize, CONFIG.gridSize, CONFIG.wrapEdges);
-
+        // Initialize WASM with binary from public directory
+        await initWasm('/demos/game-of-life/game_of_life_bg.wasm');
+        wasmBindings.init(CONFIG.gridSize, CONFIG.gridSize, CONFIG.wrapEdges);
+        setWasmReady(true);
         setLoading(false);
-        render();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load WASM');
         setLoading(false);
@@ -80,16 +47,15 @@ export function GameOfLife() {
     };
   }, []);
 
-  const render = () => {
-    const wasm = wasmRef.current;
+  const render = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!wasm || !canvas) return;
+    if (!wasmReady || !canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const cells = wasm.get_cells();
-    const width = wasm.get_width();
+    const cells = wasmBindings.get_cells();
+    const width = wasmBindings.get_width();
     const cs = CONFIG.cellSize;
 
     ctx.fillStyle = CONFIG.colors.dead;
@@ -104,41 +70,52 @@ export function GameOfLife() {
       }
     }
 
-    setGeneration(wasm.get_generation());
-    setAliveCount(wasm.get_alive_count());
-  };
+    setGeneration(Number(wasmBindings.get_generation()));
+    setAliveCount(Number(wasmBindings.get_alive_count()));
+  }, [wasmReady]);
 
-  const gameLoop = (timestamp: number) => {
-    if (!running) return;
+  const gameLoop = useCallback((timestamp: number) => {
+    if (!running || !wasmReady) return;
 
     const elapsed = timestamp - lastFrameRef.current;
     const frameInterval = 1000 / speed;
 
-    if (elapsed >= frameInterval && wasmRef.current) {
-      wasmRef.current.step();
+    if (elapsed >= frameInterval) {
+      wasmBindings.step();
       render();
       lastFrameRef.current = timestamp - (elapsed % frameInterval);
     }
 
     animationRef.current = requestAnimationFrame(gameLoop);
-  };
+  }, [running, wasmReady, speed, render]);
 
-  const toggleRunning = () => {
-    if (!running) {
-      setRunning(true);
+  // Initial render when WASM is ready
+  useEffect(() => {
+    if (wasmReady) {
+      render();
+    }
+  }, [wasmReady, render]);
+
+  // Handle animation loop
+  useEffect(() => {
+    if (running && wasmReady) {
       lastFrameRef.current = performance.now();
       animationRef.current = requestAnimationFrame(gameLoop);
-    } else {
-      setRunning(false);
+    }
+    return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-    }
+    };
+  }, [running, wasmReady, gameLoop]);
+
+  const toggleRunning = () => {
+    setRunning(!running);
   };
 
   const step = () => {
-    if (wasmRef.current) {
-      wasmRef.current.step();
+    if (wasmReady) {
+      wasmBindings.step();
       render();
     }
   };
@@ -148,34 +125,34 @@ export function GameOfLife() {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-    if (wasmRef.current) {
-      wasmRef.current.reset();
+    if (wasmReady) {
+      wasmBindings.reset();
       render();
     }
   };
 
   const randomize = () => {
-    if (wasmRef.current) {
-      wasmRef.current.randomize_grid(0.3);
+    if (wasmReady) {
+      wasmBindings.randomize_grid(0.3);
       render();
     }
   };
 
   const loadPattern = (pattern: string) => {
-    if (wasmRef.current) {
+    if (wasmReady) {
       const cx = Math.floor(CONFIG.gridSize / 2) - 5;
       const cy = Math.floor(CONFIG.gridSize / 2) - 5;
-      wasmRef.current.load_pattern(pattern, cx, cy);
+      wasmBindings.load_pattern(pattern, cx, cy);
       render();
     }
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!wasmRef.current || !canvasRef.current) return;
+    if (!wasmReady || !canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / CONFIG.cellSize);
     const y = Math.floor((e.clientY - rect.top) / CONFIG.cellSize);
-    wasmRef.current.toggle_cell(x, y);
+    wasmBindings.toggle_cell(x, y);
     render();
   };
 
@@ -317,21 +294,38 @@ export function GameOfLife() {
           </div>
         </motion.div>
 
-        {/* Source code link */}
+        {/* Source code links */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 text-center"
+          className="mt-8 p-6 bg-[#0d0d1a]/50 rounded-xl border border-[#8b5cf6]/20"
         >
-          <a
-            href="/dol-source/game-of-life/Spirit.dol"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[var(--text-muted)] text-sm hover:text-[#8b5cf6] transition-colors"
-          >
-            View DOL Source →
-          </a>
+          <h3 className="text-center text-[var(--text-primary)] mb-4">Built with DOL</h3>
+          <p className="text-center text-[var(--text-muted)] text-sm mb-4">
+            This demo is compiled from DOL (Domain Ontology Language) source code to WebAssembly.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href="https://github.com/univrs/dol/tree/main/examples/spirits/game-of-life"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-[#8b5cf6]/20 text-[#8b5cf6] rounded hover:bg-[#8b5cf6]/30 transition-colors text-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              View on GitHub
+            </a>
+            <a
+              href="/dol-source/game-of-life/Spirit.dol"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-[#00ff88]/20 text-[#00ff88] rounded hover:bg-[#00ff88]/30 transition-colors text-sm"
+            >
+              View Spirit.dol
+            </a>
+          </div>
         </motion.div>
       </div>
     </div>
