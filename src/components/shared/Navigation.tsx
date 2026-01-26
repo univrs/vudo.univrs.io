@@ -7,6 +7,7 @@ export function Navigation() {
   const location = useLocation();
   const isEditor = location.pathname === '/editor';
   const isLearn = location.pathname.startsWith('/learn');
+  const isDemos = location.pathname.startsWith('/demos');
   const { theme, toggleTheme } = useTheme();
   const { nodeId, isLoading } = useIdentity();
   const [showId, setShowId] = useState(false);
@@ -30,6 +31,16 @@ export function Navigation() {
             }`}
           >
             Learn
+          </Link>
+          <Link
+            to="/demos/game-of-life"
+            className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              isDemos
+                ? 'text-[var(--glow-green)] bg-[var(--glow-green)]/10'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-color)]'
+            }`}
+          >
+            Demos
           </Link>
           <Link
             to="/editor"
