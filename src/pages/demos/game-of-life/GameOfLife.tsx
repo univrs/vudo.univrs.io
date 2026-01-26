@@ -55,7 +55,9 @@ export function GameOfLife() {
           throw new Error('Invalid WASM file');
         }
 
-        const js = await import('/demos/game-of-life/game_of_life.js');
+        // Dynamic import from public directory (bypass TS static analysis)
+        const jsPath = '/demos/game-of-life/game_of_life.js';
+        const js = await import(/* @vite-ignore */ jsPath);
         await js.default(wasmBytes);
 
         wasmRef.current = js as unknown as WasmModule;
