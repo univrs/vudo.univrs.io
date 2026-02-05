@@ -3,6 +3,16 @@ import { motion } from 'framer-motion';
 
 const tutorials = [
   {
+    id: 'crdt',
+    title: 'Local-First & CRDTs',
+    description: 'Learn how VUDO enables offline-first, P2P applications using Conflict-free Replicated Data Types.',
+    difficulty: 'Intermediate',
+    duration: '25 min',
+    tags: ['CRDT', 'P2P', 'Automerge', 'Local-First'],
+    icon: '🔗',
+    featured: true,
+  },
+  {
     id: 'thermodynamic-economics',
     title: 'Thermodynamic Economics',
     description: 'Calculate EROEI, analyze network topology, and understand energy constraints in distributed systems.',
