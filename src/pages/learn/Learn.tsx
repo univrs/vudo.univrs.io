@@ -23,17 +23,6 @@ const tutorials = [
     featured: true,
   },
   {
-    id: 'dol-basics',
-    title: 'DOL Language Basics',
-    description: 'Learn the fundamentals of the Design Ontology Language for building type-safe Spirits.',
-    difficulty: 'Beginner',
-    duration: '15 min',
-    tags: ['DOL', 'Syntax', 'Types'],
-    icon: '📜',
-    featured: false,
-    comingSoon: true,
-  },
-  {
     id: 'spirit-architecture',
     title: 'Spirit Architecture',
     description: 'Understand how Spirits compile from DOL to Rust to WASM and execute in the VUDO runtime.',
