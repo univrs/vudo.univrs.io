@@ -6,7 +6,6 @@ import { useIdentity } from '../../hooks/useIdentity';
 export function Navigation() {
   const location = useLocation();
   const isEditor = location.pathname === '/editor';
-  const isLearn = location.pathname.startsWith('/learn');
   const isDemos = location.pathname.startsWith('/demos');
   const { theme, toggleTheme } = useTheme();
   const { nodeId, isLoading } = useIdentity();
@@ -22,16 +21,17 @@ export function Navigation() {
 
         {/* Center: Navigation Links */}
         <div className="flex items-center gap-4">
-          <Link
-            to="/learn"
-            className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-              isLearn
-                ? 'text-[var(--glow-green)] bg-[var(--glow-green)]/10'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-color)]'
-            }`}
+          <a
+            href="https://learn.univrs.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 text-sm font-medium rounded transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-color)] flex items-center gap-1"
           >
             Learn
-          </Link>
+            <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
           <Link
             to="/demos/game-of-life"
             className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
