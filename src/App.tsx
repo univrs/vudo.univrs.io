@@ -1,8 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Navigation } from './components/shared/Navigation';
 import { Landing } from './pages/Landing';
 import { Editor } from './pages/Editor';
+import { Learn } from './pages/learn/Learn';
+import { CRDT } from './pages/learn/CRDT';
+import { ThermodynamicEconomics } from './pages/learn/ThermodynamicEconomics';
 import { GameOfLife } from './pages/demos/game-of-life/GameOfLife';
 
 export default function App() {
@@ -13,17 +16,13 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/editor" element={<Editor />} />
+          {/* Interactive demos - these stay on vudo.univrs.io */}
+          <Route path="/learn" element={<Learn />} />
+          <Route path="/learn/crdt" element={<CRDT />} />
+          <Route path="/learn/thermodynamic-economics" element={<ThermodynamicEconomics />} />
           <Route path="/demos/game-of-life" element={<GameOfLife />} />
-          {/* Redirect old /learn routes to learn.univrs.io */}
-          <Route path="/learn/*" element={<ExternalRedirect to="https://learn.univrs.io" />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );
-}
-
-// Redirect component for external URLs
-function ExternalRedirect({ to }: { to: string }) {
-  window.location.href = to;
-  return null;
 }
