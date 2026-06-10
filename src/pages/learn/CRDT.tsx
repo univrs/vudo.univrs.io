@@ -11,7 +11,7 @@ export function CRDT() {
     <div className="min-h-screen bg-[var(--bg-primary)] pt-20">
       {/* Header */}
       <section className="max-w-5xl mx-auto px-6 py-8">
-        <Link to="/learn" className="text-[var(--text-muted)] hover:text-[#00ff88] text-sm mb-4 inline-block">
+        <Link to="/learn" className="text-[var(--text-muted)] hover:text-[#e8c25a] text-sm mb-4 inline-block">
           ← Back to Learn
         </Link>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -25,8 +25,8 @@ export function CRDT() {
             Learn how VUDO enables offline-first, P2P applications using Conflict-free Replicated Data Types.
             Your data, your device — the network is optional.
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00ff88]/10 text-[#00ff88] text-sm">
-            <span className="w-2 h-2 rounded-full bg-[#00ff88]" />
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e8c25a]/10 text-[#e8c25a] text-sm">
+            <span className="w-2 h-2 rounded-full bg-[#e8c25a]" />
             Powered by Automerge + Iroh P2P
           </div>
         </motion.div>
@@ -47,7 +47,7 @@ export function CRDT() {
               onClick={() => setActiveSection(key)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 activeSection === key
-                  ? 'bg-[#00ff88]/20 text-[#00ff88]'
+                  ? 'bg-[#e8c25a]/20 text-[#e8c25a]'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -125,7 +125,7 @@ function IntroSection({ onNext }: { onNext: () => void }) {
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         Explore CRDT Types →
       </button>
@@ -207,7 +207,7 @@ Result: 1-2 bold, 3-5 bold+italic, 6-8 italic`}
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         See the Architecture →
       </button>
@@ -283,7 +283,7 @@ function ArchitectureSection({ onNext }: { onNext: () => void }) {
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         Understand the Hard Problems →
       </button>
@@ -353,7 +353,7 @@ actor_id: 0x0000000001  // Fixed, reproducible
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         See DOL Integration →
       </button>
@@ -448,13 +448,13 @@ impl User {
           <li>• Kleppmann et al., "Local-First Software" (2019)</li>
           <li>• Shapiro et al., "Convergent and Commutative Replicated Data Types" (2011)</li>
           <li>• Litt et al., "Peritext: A CRDT for Collaborative Rich Text" (2022)</li>
-          <li>• <a href="https://automerge.org" className="text-[#00ff88] hover:underline">automerge.org</a> — Implementation docs</li>
-          <li>• <a href="https://iroh.computer" className="text-[#00ff88] hover:underline">iroh.computer</a> — P2P transport</li>
+          <li>• <a href="https://automerge.org" className="text-[#e8c25a] hover:underline">automerge.org</a> — Implementation docs</li>
+          <li>• <a href="https://iroh.computer" className="text-[#e8c25a] hover:underline">iroh.computer</a> — P2P transport</li>
         </ul>
       </InfoBox>
 
-      <div className="p-6 rounded-xl border-2 border-[#00ff88]/30 bg-[#00ff88]/5">
-        <h3 className="text-xl font-bold text-[#00ff88] mb-2">🍄 The Mycelium is Growing</h3>
+      <div className="p-6 rounded-xl border-2 border-[#e8c25a]/30 bg-[#e8c25a]/5">
+        <h3 className="text-xl font-bold text-[#e8c25a] mb-2">🍄 The Mycelium is Growing</h3>
         <p className="text-[var(--text-secondary)]">
           VUDO's local-first architecture means your Spirits run anywhere — browser, desktop, mobile, edge.
           No cloud required. Your data, your control. The network is just a sync channel.
@@ -472,7 +472,7 @@ function IdealCard({ number, title, description }: { number: number; title: stri
   return (
     <div className="p-4 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface)]">
       <div className="flex items-center gap-2 mb-2">
-        <span className="w-6 h-6 rounded-full bg-[#00ff88]/20 text-[#00ff88] text-xs font-bold flex items-center justify-center">
+        <span className="w-6 h-6 rounded-full bg-[#e8c25a]/20 text-[#e8c25a] text-xs font-bold flex items-center justify-center">
           {number}
         </span>
         <h4 className="font-semibold text-[var(--text-primary)]">{title}</h4>
@@ -494,7 +494,7 @@ function ProblemCard({ title, description }: { title: string; description: strin
 function CRDTRow({ type, useCase, merge }: { type: string; useCase: string; merge: string }) {
   return (
     <tr className="border-b border-[var(--border-color)]">
-      <td className="py-3 px-4 font-mono text-[#00ff88]">{type}</td>
+      <td className="py-3 px-4 font-mono text-[#e8c25a]">{type}</td>
       <td className="py-3 px-4">{useCase}</td>
       <td className="py-3 px-4">{merge}</td>
     </tr>
@@ -553,7 +553,7 @@ function HardProblemCard({
         <h3 className="text-lg font-bold text-[var(--text-primary)]">{title}</h3>
       </div>
       <p className="text-[var(--text-secondary)] mb-3">{description}</p>
-      <p className="text-sm text-[#00ff88] mb-3">
+      <p className="text-sm text-[#e8c25a] mb-3">
         <span className="font-semibold">Solution:</span> {solution}
       </p>
       <pre className="p-3 rounded bg-black/30 text-xs font-mono text-[var(--text-muted)] overflow-x-auto">
@@ -574,7 +574,7 @@ function InfoBox({
 }) {
   const colors = {
     info: 'border-blue-500/30 bg-blue-500/5 text-blue-400',
-    success: 'border-[#00ff88]/30 bg-[#00ff88]/5 text-[#00ff88]',
+    success: 'border-[#e8c25a]/30 bg-[#e8c25a]/5 text-[#e8c25a]',
     warning: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400',
   };
 

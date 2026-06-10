@@ -7,27 +7,27 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-surface: #12121a;
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.6);
-    --text-muted: rgba(255, 255, 255, 0.4);
-    --glow-green: #00ff88;
-    --glow-purple: #8b5cf6;
-    --glow-gold: #fbbf24;
-    --border-color: rgba(255, 255, 255, 0.1);
+    --bg-primary: #080808;
+    --bg-surface: #0f0f0c;
+    --text-primary: #f3ecd8;
+    --text-secondary: #d4cab0;
+    --text-muted: #9a907a;
+    --glow-green: #e8c25a;
+    --glow-purple: #b9a06c;
+    --glow-gold: #f4d77c;
+    --border-color: rgba(232, 194, 90, 0.22);
 }
 
 .light {
-    --bg-primary: #f8fafc;
+    --bg-primary: #faf8f0;
     --bg-surface: #ffffff;
-    --text-primary: #0f172a;
-    --text-secondary: rgba(15, 23, 42, 0.7);
-    --text-muted: rgba(15, 23, 42, 0.5);
-    --glow-green: #047857;
-    --glow-purple: #7c3aed;
-    --glow-gold: #d97706;
-    --border-color: rgba(15, 23, 42, 0.1);
+    --text-primary: #221d12;
+    --text-secondary: #4a4232;
+    --text-muted: #6b6353;
+    --glow-green: #7a6a32;
+    --glow-purple: #b9a06c;
+    --glow-gold: #7a6a32;
+    --border-color: rgba(122, 106, 50, 0.3);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -44,7 +44,7 @@ html {
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Cormorant Garamond", "Iowan Old Style", Garamond, serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
@@ -53,7 +53,7 @@ body {
 }
 
 ::selection {
-    background-color: rgba(0, 255, 136, 0.3);
+    background-color: rgba(232, 194, 90, 0.3);
     color: var(--text-primary);
 }
 
@@ -141,11 +141,11 @@ a {
    LIGHT MODE OVERRIDES
    ═══════════════════════════════════════════════════════════════════ */
 
-.light .bg-\[\#0a0a0f\] {
+.light .bg-\[\#080808\] {
     background-color: var(--bg-primary);
 }
 
-.light .bg-\[\#0d0d14\] {
+.light .bg-\[\#0c0c0a\] {
     background-color: var(--bg-surface);
 }
 
@@ -168,58 +168,58 @@ a {
 }
 
 .light .bg-white\/5 {
-    background-color: rgba(15, 23, 42, 0.05);
+    background-color: rgba(34, 29, 18, 0.05);
 }
 
 .light .bg-white\/10 {
-    background-color: rgba(15, 23, 42, 0.1);
+    background-color: rgba(34, 29, 18, 0.1);
 }
 
 /* Green text overrides for accessibility in light mode */
-.light .text-\[\#00ff88\] {
+.light .text-\[\#e8c25a\] {
     color: var(--glow-green);
 }
 
-.light .text-\[\#00ff88\]\/80 {
+.light .text-\[\#e8c25a\]\/80 {
     color: color-mix(in srgb, var(--glow-green) 80%, transparent);
 }
 
-.light .text-\[\#00ff88\]\/60 {
+.light .text-\[\#e8c25a\]\/60 {
     color: color-mix(in srgb, var(--glow-green) 60%, transparent);
 }
 
-.light .border-\[\#00ff88\]\/30 {
+.light .border-\[\#e8c25a\]\/30 {
     border-color: color-mix(in srgb, var(--glow-green) 30%, transparent);
 }
 
-.light .border-\[\#00ff88\]\/50 {
+.light .border-\[\#e8c25a\]\/50 {
     border-color: color-mix(in srgb, var(--glow-green) 50%, transparent);
 }
 
-.light .bg-\[\#00ff88\]\/10 {
+.light .bg-\[\#e8c25a\]\/10 {
     background-color: color-mix(in srgb, var(--glow-green) 10%, transparent);
 }
 
-.light .bg-\[\#00ff88\]\/20 {
+.light .bg-\[\#e8c25a\]\/20 {
     background-color: color-mix(in srgb, var(--glow-green) 20%, transparent);
 }
 
-.light .hover\:bg-\[\#00ff88\]\/20:hover {
+.light .hover\:bg-\[\#e8c25a\]\/20:hover {
     background-color: color-mix(in srgb, var(--glow-green) 20%, transparent);
 }
 
-.light .hover\:border-\[\#00ff88\]\/50:hover {
+.light .hover\:border-\[\#e8c25a\]\/50:hover {
     border-color: color-mix(in srgb, var(--glow-green) 50%, transparent);
 }
 
-.light .hover\:text-\[\#00ff88\]\/80:hover {
+.light .hover\:text-\[\#e8c25a\]\/80:hover {
     color: color-mix(in srgb, var(--glow-green) 80%, transparent);
 }
 
 /* Hero title gradient override for light mode */
 .light .bg-gradient-to-b.from-white.to-white\/60 {
-    --tw-gradient-from: #0f172a;
-    --tw-gradient-to: rgba(15, 23, 42, 0.7);
+    --tw-gradient-from: #221d12;
+    --tw-gradient-to: rgba(34, 29, 18, 0.7);
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
@@ -262,4 +262,11 @@ a {
 
 .animation-delay-2000 {
     animation-delay: 2s;
+}
+
+/* Shamsa / sun medallion rotation: animation: spin 220s linear infinite; */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

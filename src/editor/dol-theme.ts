@@ -5,15 +5,15 @@
  * with the VUDO brand color palette.
  *
  * Color Palette:
- * - Background: #0a0a0f (dark void)
- * - Keywords: #00ff88 (VUDO glow green)
- * - Types: #8b5cf6 (Mycelium purple)
- * - Strings: #fbbf24 (Veve gold/amber)
+ * - Background: #0c0c0a (dark void)
+ * - Keywords: #e8c25a (VUDO glow green)
+ * - Types: #b9a06c (Mycelium purple)
+ * - Strings: #f4d77c (Veve gold/amber)
  * - Numbers: #ec4899 (pink)
  * - Comments: #6b7280 (muted gray)
  * - Operators: #06b6d4 (cyan)
  * - Functions: #f472b6 (light pink)
- * - Variables: #e5e7eb (light gray)
+ * - Variables: #f3ecd8 (light gray)
  * - Punctuation: #9ca3af (medium gray)
  */
 
@@ -110,36 +110,36 @@ export const vudoTheme: editor.IStandaloneThemeData = {
 
   colors: {
     // Editor background and foreground
-    'editor.background': '#0a0a0f',
-    'editor.foreground': '#e5e7eb',
+    'editor.background': '#0c0c0a',
+    'editor.foreground': '#f3ecd8',
 
     // Cursor and line highlight
-    'editorCursor.foreground': '#00ff88',
-    'editorCursor.background': '#0a0a0f',
-    'editor.lineHighlightBackground': '#1a1a2e',
+    'editorCursor.foreground': '#e8c25a',
+    'editorCursor.background': '#0c0c0a',
+    'editor.lineHighlightBackground': '#1a1a12',
     'editor.lineHighlightBorder': '#2a2a4e00',
 
     // Selection colors
-    'editor.selectionBackground': '#00ff8833',
-    'editor.selectionHighlightBackground': '#00ff8822',
-    'editor.inactiveSelectionBackground': '#00ff8820',
+    'editor.selectionBackground': '#e8c25a33',
+    'editor.selectionHighlightBackground': '#e8c25a22',
+    'editor.inactiveSelectionBackground': '#e8c25a20',
 
     // Find/search highlight
-    'editor.findMatchBackground': '#fbbf2440',
-    'editor.findMatchHighlightBackground': '#fbbf2420',
-    'editor.findMatchBorder': '#fbbf24',
+    'editor.findMatchBackground': '#f4d77c40',
+    'editor.findMatchHighlightBackground': '#f4d77c20',
+    'editor.findMatchBorder': '#f4d77c',
 
     // Word highlight
-    'editor.wordHighlightBackground': '#8b5cf622',
-    'editor.wordHighlightStrongBackground': '#8b5cf633',
+    'editor.wordHighlightBackground': '#b9a06c22',
+    'editor.wordHighlightStrongBackground': '#b9a06c33',
 
     // Bracket matching
-    'editorBracketMatch.background': '#00ff8830',
-    'editorBracketMatch.border': '#00ff88',
+    'editorBracketMatch.background': '#e8c25a30',
+    'editorBracketMatch.border': '#e8c25a',
 
     // Line numbers
     'editorLineNumber.foreground': '#4b5563',
-    'editorLineNumber.activeForeground': '#00ff88',
+    'editorLineNumber.activeForeground': '#e8c25a',
 
     // Indentation guides
     'editorIndentGuide.background': '#374151',
@@ -155,97 +155,97 @@ export const vudoTheme: editor.IStandaloneThemeData = {
     'scrollbar.shadow': '#000000',
     'scrollbarSlider.background': '#4b556350',
     'scrollbarSlider.hoverBackground': '#6b728080',
-    'scrollbarSlider.activeBackground': '#00ff8880',
+    'scrollbarSlider.activeBackground': '#e8c25a80',
 
     // Minimap
-    'minimap.background': '#0a0a0f',
-    'minimap.selectionHighlight': '#00ff8860',
+    'minimap.background': '#0c0c0a',
+    'minimap.selectionHighlight': '#e8c25a60',
     'minimapSlider.background': '#4b556330',
     'minimapSlider.hoverBackground': '#6b728050',
-    'minimapSlider.activeBackground': '#00ff8850',
+    'minimapSlider.activeBackground': '#e8c25a50',
 
     // Gutter
-    'editorGutter.background': '#0a0a0f',
-    'editorGutter.addedBackground': '#00ff88',
-    'editorGutter.modifiedBackground': '#fbbf24',
+    'editorGutter.background': '#0c0c0a',
+    'editorGutter.addedBackground': '#e8c25a',
+    'editorGutter.modifiedBackground': '#f4d77c',
     'editorGutter.deletedBackground': '#ef4444',
 
     // Overview ruler (right edge markers)
     'editorOverviewRuler.border': '#374151',
     'editorOverviewRuler.errorForeground': '#ef4444',
-    'editorOverviewRuler.warningForeground': '#fbbf24',
+    'editorOverviewRuler.warningForeground': '#f4d77c',
     'editorOverviewRuler.infoForeground': '#06b6d4',
-    'editorOverviewRuler.bracketMatchForeground': '#00ff88',
-    'editorOverviewRuler.findMatchForeground': '#fbbf24',
-    'editorOverviewRuler.selectionHighlightForeground': '#00ff8880',
+    'editorOverviewRuler.bracketMatchForeground': '#e8c25a',
+    'editorOverviewRuler.findMatchForeground': '#f4d77c',
+    'editorOverviewRuler.selectionHighlightForeground': '#e8c25a80',
 
     // Error/Warning squiggles
     'editorError.foreground': '#ef4444',
-    'editorWarning.foreground': '#fbbf24',
+    'editorWarning.foreground': '#f4d77c',
     'editorInfo.foreground': '#06b6d4',
-    'editorHint.foreground': '#00ff88',
+    'editorHint.foreground': '#e8c25a',
 
     // Widget colors (autocomplete, hover, etc.)
-    'editorWidget.background': '#0f0f1a',
+    'editorWidget.background': '#0f0f0c',
     'editorWidget.border': '#374151',
-    'editorWidget.foreground': '#e5e7eb',
+    'editorWidget.foreground': '#f3ecd8',
 
     // Suggest widget (autocomplete)
-    'editorSuggestWidget.background': '#0f0f1a',
+    'editorSuggestWidget.background': '#0f0f0c',
     'editorSuggestWidget.border': '#374151',
-    'editorSuggestWidget.foreground': '#e5e7eb',
-    'editorSuggestWidget.highlightForeground': '#00ff88',
-    'editorSuggestWidget.selectedBackground': '#1a1a2e',
+    'editorSuggestWidget.foreground': '#f3ecd8',
+    'editorSuggestWidget.highlightForeground': '#e8c25a',
+    'editorSuggestWidget.selectedBackground': '#1a1a12',
 
     // Hover widget
-    'editorHoverWidget.background': '#0f0f1a',
+    'editorHoverWidget.background': '#0f0f0c',
     'editorHoverWidget.border': '#374151',
-    'editorHoverWidget.foreground': '#e5e7eb',
+    'editorHoverWidget.foreground': '#f3ecd8',
 
     // Peek view
-    'peekView.border': '#00ff88',
-    'peekViewEditor.background': '#0f0f1a',
-    'peekViewEditor.matchHighlightBackground': '#fbbf2440',
-    'peekViewResult.background': '#0a0a0f',
-    'peekViewResult.fileForeground': '#e5e7eb',
+    'peekView.border': '#e8c25a',
+    'peekViewEditor.background': '#0f0f0c',
+    'peekViewEditor.matchHighlightBackground': '#f4d77c40',
+    'peekViewResult.background': '#0c0c0a',
+    'peekViewResult.fileForeground': '#f3ecd8',
     'peekViewResult.lineForeground': '#9ca3af',
-    'peekViewResult.matchHighlightBackground': '#fbbf2440',
-    'peekViewResult.selectionBackground': '#1a1a2e',
-    'peekViewResult.selectionForeground': '#e5e7eb',
-    'peekViewTitle.background': '#0f0f1a',
-    'peekViewTitleLabel.foreground': '#00ff88',
+    'peekViewResult.matchHighlightBackground': '#f4d77c40',
+    'peekViewResult.selectionBackground': '#1a1a12',
+    'peekViewResult.selectionForeground': '#f3ecd8',
+    'peekViewTitle.background': '#0f0f0c',
+    'peekViewTitleLabel.foreground': '#e8c25a',
     'peekViewTitleDescription.foreground': '#9ca3af',
 
     // Diff editor
-    'diffEditor.insertedTextBackground': '#00ff8820',
+    'diffEditor.insertedTextBackground': '#e8c25a20',
     'diffEditor.removedTextBackground': '#ef444420',
-    'diffEditor.insertedLineBackground': '#00ff8815',
+    'diffEditor.insertedLineBackground': '#e8c25a15',
     'diffEditor.removedLineBackground': '#ef444415',
 
     // Input fields
-    'input.background': '#0f0f1a',
+    'input.background': '#0f0f0c',
     'input.border': '#374151',
-    'input.foreground': '#e5e7eb',
+    'input.foreground': '#f3ecd8',
     'input.placeholderForeground': '#6b7280',
-    'inputOption.activeBackground': '#00ff8833',
-    'inputOption.activeBorder': '#00ff88',
+    'inputOption.activeBackground': '#e8c25a33',
+    'inputOption.activeBorder': '#e8c25a',
 
     // Focus border
-    'focusBorder': '#00ff8880',
+    'focusBorder': '#e8c25a80',
 
     // Dropdown
-    'dropdown.background': '#0f0f1a',
+    'dropdown.background': '#0f0f0c',
     'dropdown.border': '#374151',
-    'dropdown.foreground': '#e5e7eb',
+    'dropdown.foreground': '#f3ecd8',
 
     // List colors
-    'list.activeSelectionBackground': '#1a1a2e',
-    'list.activeSelectionForeground': '#e5e7eb',
-    'list.hoverBackground': '#1a1a2e80',
-    'list.hoverForeground': '#e5e7eb',
-    'list.focusBackground': '#1a1a2e',
-    'list.focusForeground': '#e5e7eb',
-    'list.highlightForeground': '#00ff88',
+    'list.activeSelectionBackground': '#1a1a12',
+    'list.activeSelectionForeground': '#f3ecd8',
+    'list.hoverBackground': '#1a1a1280',
+    'list.hoverForeground': '#f3ecd8',
+    'list.focusBackground': '#1a1a12',
+    'list.focusForeground': '#f3ecd8',
+    'list.highlightForeground': '#e8c25a',
   },
 };
 

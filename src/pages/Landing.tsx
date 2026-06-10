@@ -11,7 +11,7 @@ function LoadingScreen() {
     return (
         <div className="fixed inset-0 bg-[var(--bg-primary)] flex items-center justify-center">
             <div className="text-center">
-                <div className="w-12 h-12 md:w-16 md:h-16 border-2 border-[#00ff88]/30 border-t-[#00ff88] rounded-full animate-spin mx-auto mb-4" />
+                <div className="w-12 h-12 md:w-16 md:h-16 border-2 border-[#e8c25a]/30 border-t-[#e8c25a] rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-[var(--text-muted)] text-sm tracking-widest uppercase">
                     Summoning...
                 </p>
@@ -23,14 +23,14 @@ function LoadingScreen() {
 function VeveDivider() {
     return (
         <div className="flex items-center justify-center gap-4 md:gap-8 my-12 md:my-16 px-4">
-            <div className="h-px flex-1 max-w-[100px] md:max-w-xs bg-gradient-to-r from-transparent to-[#fbbf24]/30" />
+            <div className="h-px flex-1 max-w-[100px] md:max-w-xs bg-gradient-to-r from-transparent to-[#f4d77c]/30" />
             <VevePattern
                 type="mitan"
                 size={32}
                 strokeWidth={1}
                 className="md:w-10 md:h-10"
             />
-            <div className="h-px flex-1 max-w-[100px] md:max-w-xs bg-gradient-to-l from-transparent to-[#fbbf24]/30" />
+            <div className="h-px flex-1 max-w-[100px] md:max-w-xs bg-gradient-to-l from-transparent to-[#f4d77c]/30" />
         </div>
     );
 }
@@ -64,7 +64,7 @@ function VocabularySection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                 >
-                    <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#8b5cf6]/80 mb-3 md:mb-4">
+                    <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#b9a06c]/80 mb-3 md:mb-4">
                         The Dual Vocabulary
                     </h2>
                     <p className="text-xl md:text-2xl lg:text-3xl text-[var(--text-primary)] font-light px-4">
@@ -89,7 +89,7 @@ function VocabularySection() {
                                 <VevePattern
                                     type={item.type}
                                     size={48}
-                                    color="#8b5cf6"
+                                    color="#b9a06c"
                                     className="mx-auto md:w-[60px] md:h-[60px]"
                                     delay={i * 0.2}
                                 />
@@ -115,7 +115,7 @@ function ManifestoSection() {
             className="relative py-16 md:py-32 px-4 md:px-6 overflow-hidden"
         >
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#00ff88]/5 rounded-full blur-3xl" />
+                <div className="w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#e8c25a]/5 rounded-full blur-3xl" />
             </div>
 
             <motion.div
@@ -131,7 +131,7 @@ function ManifestoSection() {
                 />
 
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-[var(--text-primary)] mb-6 md:mb-8 leading-tight">
-                    The <span className="text-[#00ff88]">Imaginarium</span>
+                    The <span className="text-[#e8c25a]">Imaginarium</span>
                 </h2>
 
                 <div className="space-y-4 md:space-y-6 text-base md:text-lg text-[var(--text-secondary)] leading-relaxed px-4">
@@ -171,7 +171,7 @@ function CTASection() {
     return (
         <section className="relative py-16 md:py-32 px-4 md:px-6">
             <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#fbbf24]/80 mb-6 md:mb-8">
+                <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#f4d77c]/80 mb-6 md:mb-8">
                     The Summons
                 </h2>
 
@@ -184,8 +184,8 @@ function CTASection() {
                 </p>
 
                 <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#00ff88]/30 transition-colors">
-                        <h3 className="text-[#00ff88] mb-2">For Developers</h3>
+                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#e8c25a]/30 transition-colors">
+                        <h3 className="text-[#e8c25a] mb-2">For Developers</h3>
                         <p className="text-xs md:text-sm text-[var(--text-muted)] mb-4">
                             Clone the repo. Run the tests.
                             <br />
@@ -193,14 +193,14 @@ function CTASection() {
                         </p>
                         <a
                             href="https://github.com/univrs/dol"
-                            className="text-xs md:text-sm text-[#00ff88] hover:text-[#00ff88]/80"
+                            className="text-xs md:text-sm text-[#e8c25a] hover:text-[#e8c25a]/80"
                         >
                             Start Building -&gt;
                         </a>
                     </div>
 
-                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#8b5cf6]/30 transition-colors">
-                        <h3 className="text-[#8b5cf6] mb-2">For Creators</h3>
+                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#b9a06c]/30 transition-colors">
+                        <h3 className="text-[#b9a06c] mb-2">For Creators</h3>
                         <p className="text-xs md:text-sm text-[var(--text-muted)] mb-4">
                             Imagine a Spirit you would summon.
                             <br />
@@ -208,14 +208,14 @@ function CTASection() {
                         </p>
                         <a
                             href="#waitlist"
-                            className="text-xs md:text-sm text-[#8b5cf6] hover:text-[#8b5cf6]/80"
+                            className="text-xs md:text-sm text-[#b9a06c] hover:text-[#b9a06c]/80"
                         >
                             Join the Waitlist -&gt;
                         </a>
                     </div>
 
-                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#fbbf24]/30 transition-colors">
-                        <h3 className="text-[#fbbf24] mb-2">For Researchers</h3>
+                    <div className="p-5 md:p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-sm hover:border-[#f4d77c]/30 transition-colors">
+                        <h3 className="text-[#f4d77c] mb-2">For Researchers</h3>
                         <p className="text-xs md:text-sm text-[var(--text-muted)] mb-4">
                             Read the ontology foundations.
                             <br />
@@ -223,7 +223,7 @@ function CTASection() {
                         </p>
                         <a
                             href="https://learn.univrs.io"
-                            className="text-xs md:text-sm text-[#fbbf24] hover:text-[#fbbf24]/80"
+                            className="text-xs md:text-sm text-[#f4d77c] hover:text-[#f4d77c]/80"
                         >
                             Explore the Theory -&gt;
                         </a>

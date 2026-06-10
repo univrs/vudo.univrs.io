@@ -131,9 +131,9 @@ const adoption: AdoptionMetrics = {
 
 function StatusDot({ status }: { status: "complete" | "active" | "pending" | "stable" }) {
     const colors = {
-        complete: "#00ff88",
-        stable: "#00ff88",
-        active: "#fbbf24",
+        complete: "#e8c25a",
+        stable: "#e8c25a",
+        active: "#f4d77c",
         pending: "rgba(255,255,255,0.3)",
     };
 
@@ -176,12 +176,12 @@ export function MilestoneTracker() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                 >
-                    <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#00ff88]/80 mb-3 md:mb-4">
+                    <h2 className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#e8c25a]/80 mb-3 md:mb-4">
                         Development Progress
                     </h2>
                     <p className="text-xl md:text-2xl lg:text-3xl text-[var(--text-primary)] font-light">
                         The network is not pipes. It is a{" "}
-                        <span className="text-[#00ff88]">living market</span>.
+                        <span className="text-[#e8c25a]">living market</span>.
                     </p>
                 </motion.div>
 
@@ -194,7 +194,7 @@ export function MilestoneTracker() {
                     transition={{ delay: 0.2 }}
                 >
                     <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-light text-[#00ff88]">
+                        <div className="text-2xl md:text-3xl font-light text-[#e8c25a]">
                             {completedPhases}/{phases.length}
                         </div>
                         <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
@@ -202,7 +202,7 @@ export function MilestoneTracker() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-light text-[#00ff88]">
+                        <div className="text-2xl md:text-3xl font-light text-[#e8c25a]">
                             {totalTests.toLocaleString()}
                         </div>
                         <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
@@ -210,7 +210,7 @@ export function MilestoneTracker() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-light text-[#fbbf24]">
+                        <div className="text-2xl md:text-3xl font-light text-[#f4d77c]">
                             {totalDolLines.toLocaleString()}
                         </div>
                         <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
@@ -261,7 +261,7 @@ export function MilestoneTracker() {
                             onClick={() => setActiveTab(tab)}
                             className={`px-4 py-2 text-sm rounded-full border transition-all ${
                                 activeTab === tab
-                                    ? "bg-[#00ff88]/15 border-[#00ff88] text-[#00ff88]"
+                                    ? "bg-[#e8c25a]/15 border-[#e8c25a] text-[#e8c25a]"
                                     : "border-white/20 text-white/60 hover:border-white/40"
                             }`}
                         >
@@ -284,7 +284,7 @@ export function MilestoneTracker() {
                             {phases.map((phase, i) => (
                                 <motion.div
                                     key={phase.id}
-                                    className="p-4 md:p-5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-lg hover:border-[#00ff88]/30 transition-colors"
+                                    className="p-4 md:p-5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-lg hover:border-[#e8c25a]/30 transition-colors"
                                     initial={{ opacity: 0, x: -20 }}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
@@ -295,7 +295,7 @@ export function MilestoneTracker() {
                                         <span className="font-medium text-[var(--text-primary)] flex-1">
                                             {phase.name}
                                         </span>
-                                        <span className="text-xs text-[#00ff88] bg-[#00ff88]/10 px-2 py-1 rounded">
+                                        <span className="text-xs text-[#e8c25a] bg-[#e8c25a]/10 px-2 py-1 rounded">
                                             {phase.tests} tests
                                         </span>
                                     </div>
@@ -325,7 +325,7 @@ export function MilestoneTracker() {
                                     href={repo.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 p-4 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-lg hover:border-[#00ff88]/30 transition-all"
+                                    className="flex items-center gap-3 p-4 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-lg hover:border-[#e8c25a]/30 transition-all"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     whileInView={{ opacity: 1, scale: 1 }}
                                     viewport={{ once: true }}
@@ -336,7 +336,7 @@ export function MilestoneTracker() {
                                     <span className="font-mono text-sm text-[var(--text-primary)] flex-1">
                                         {repo.name}
                                     </span>
-                                    <span className="text-xs text-[#00ff88]">
+                                    <span className="text-xs text-[#e8c25a]">
                                         {repo.tests} tests
                                     </span>
                                 </motion.a>
@@ -362,7 +362,7 @@ export function MilestoneTracker() {
                                         </span>
                                     </div>
                                     {sys.formula && (
-                                        <code className="block text-xs text-[#00ffcc] bg-[#00ff88]/5 p-2 rounded mb-2 font-mono overflow-hidden text-ellipsis whitespace-nowrap">
+                                        <code className="block text-xs text-[#f4d77c] bg-[#e8c25a]/5 p-2 rounded mb-2 font-mono overflow-hidden text-ellipsis whitespace-nowrap">
                                             {sys.formula}
                                         </code>
                                     )}

@@ -45,8 +45,8 @@ export function Hero() {
                             variants={letterVariants}
                             className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-light tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60"
                             style={{
-                                fontFamily: "Space Grotesk, sans-serif",
-                                textShadow: "0 0 30px rgba(0, 255, 136, 0.3)",
+                                fontFamily: "'Cinzel Decorative', Cinzel, serif",
+                                textShadow: "0 0 30px rgba(232, 194, 90, 0.3)",
                             }}
                         >
                             {letter}
@@ -56,7 +56,7 @@ export function Hero() {
 
                 <motion.p
                     variants={fadeUpVariants}
-                    className="text-sm md:text-base tracking-[0.4em] uppercase text-[#00ff88]/80 mb-12"
+                    className="text-sm md:text-base tracking-[0.4em] uppercase text-[#e8c25a]/80 mb-12"
                     style={{ fontFamily: "JetBrains Mono, monospace" }}
                 >
                     Virtual Univrs Design Ontology
@@ -64,7 +64,7 @@ export function Hero() {
 
                 <motion.div
                     variants={fadeUpVariants}
-                    className="w-48 h-px bg-gradient-to-r from-transparent via-[#fbbf24] to-transparent mx-auto mb-12"
+                    className="w-48 h-px bg-gradient-to-r from-transparent via-[#f4d77c] to-transparent mx-auto mb-12"
                 />
 
                 <motion.h2
@@ -76,14 +76,14 @@ export function Hero() {
 
                 <motion.p
                     variants={fadeUpVariants}
-                    className="text-lg md:text-xl lg:text-2xl text-[#00ff88] mb-4 max-w-xl mx-auto font-light italic"
+                    className="text-lg md:text-xl lg:text-2xl text-[#e8c25a] mb-4 max-w-xl mx-auto font-light italic"
                 >
                     Make the Univrs in your image.
                 </motion.p>
 
                 <motion.p
                     variants={fadeUpVariants}
-                    className="text-base md:text-lg text-[#fbbf24]/80 mb-12 max-w-xl mx-auto font-light"
+                    className="text-base md:text-lg text-[#f4d77c]/80 mb-12 max-w-xl mx-auto font-light"
                 >
                     Le réseau est Bondieu
                 </motion.p>
@@ -106,7 +106,7 @@ export function Hero() {
                 >
                     <a
                         href="#imaginarium"
-                        className="group relative px-8 py-4 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-sm text-[#00ff88] hover:bg-[#00ff88]/20 hover:border-[#00ff88]/50 transition-all duration-300"
+                        className="group relative px-8 py-4 bg-[#e8c25a]/10 border border-[#e8c25a]/30 rounded-sm text-[#e8c25a] hover:bg-[#e8c25a]/20 hover:border-[#e8c25a]/50 transition-all duration-300"
                     >
                         <span className="relative z-10 tracking-wider uppercase text-sm">
                             Enter the Imaginarium

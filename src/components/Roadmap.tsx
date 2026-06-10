@@ -21,7 +21,7 @@ const roadmapData: YearData[] = [
         year: 1,
         name: "GENESIS",
         tagline: "The language that writes itself",
-        color: "#00ff88",
+        color: "#e8c25a",
         milestones: [
             {
                 quarter: "Q1",
@@ -53,7 +53,7 @@ const roadmapData: YearData[] = [
         year: 2,
         name: "MANIFESTATION",
         tagline: "The machine that runs Spirits",
-        color: "#8b5cf6",
+        color: "#b9a06c",
         milestones: [
             {
                 quarter: "Q1",
@@ -85,7 +85,7 @@ const roadmapData: YearData[] = [
         year: 3,
         name: "EMERGENCE",
         tagline: "The garden that grows itself",
-        color: "#fbbf24",
+        color: "#f4d77c",
         milestones: [
             {
                 quarter: "Q1",
@@ -235,7 +235,7 @@ export function Roadmap() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                 >
-                    <h2 className="text-sm tracking-[0.3em] uppercase text-[#fbbf24]/80 mb-4">
+                    <h2 className="text-sm tracking-[0.3em] uppercase text-[#f4d77c]/80 mb-4">
                         The Path to Imaginarium
                     </h2>
                     <p className="text-3xl md:text-4xl text-white/90 font-light">
@@ -263,7 +263,7 @@ export function Roadmap() {
                     <VevePattern
                         type="loa"
                         size={100}
-                        color="#fbbf24"
+                        color="#f4d77c"
                         className="mx-auto mb-6"
                         delay={1}
                     />

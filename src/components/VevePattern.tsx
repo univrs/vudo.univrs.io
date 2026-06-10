@@ -93,7 +93,7 @@ function generatePath(type: VeveType, size: number): string {
 export function VevePattern({
   type,
   size = 100,
-  color = '#fbbf24',
+  color = '#f4d77c',
   strokeWidth = 1.5,
   animated = true,
   delay = 0,

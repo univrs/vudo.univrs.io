@@ -46,7 +46,7 @@ export function Learn() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-4">
-            Learn <span className="text-[#00ff88]">VUDO</span>
+            Learn <span className="text-[#e8c25a]">VUDO</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl">
             Interactive tutorials that demonstrate the DOL → Rust → WASM pipeline.
@@ -75,10 +75,10 @@ export function Learn() {
               ) : (
                 <Link
                   to={`/learn/${tutorial.id}`}
-                  className="block h-full p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)] hover:border-[#00ff88]/50 hover:shadow-[0_0_30px_rgba(0,255,136,0.1)] transition-all duration-300 group"
+                  className="block h-full p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)] hover:border-[#e8c25a]/50 hover:shadow-[0_0_30px_rgba(232,194,90,0.1)] transition-all duration-300 group"
                 >
                   <TutorialCardContent tutorial={tutorial} />
-                  <div className="mt-4 text-[#00ff88] text-sm group-hover:translate-x-1 transition-transform">
+                  <div className="mt-4 text-[#e8c25a] text-sm group-hover:translate-x-1 transition-transform">
                     Start Tutorial →
                   </div>
                 </Link>
@@ -118,7 +118,7 @@ function TutorialCardContent({ tutorial }: { tutorial: typeof tutorials[0] }) {
       <div className="flex items-start justify-between mb-4">
         <span className="text-3xl">{tutorial.icon}</span>
         {tutorial.featured && (
-          <span className="px-2 py-1 rounded-full bg-[#00ff88]/20 text-[#00ff88] text-xs font-medium">
+          <span className="px-2 py-1 rounded-full bg-[#e8c25a]/20 text-[#e8c25a] text-xs font-medium">
             Featured
           </span>
         )}
@@ -157,6 +157,6 @@ function PipelineStep({ icon, label, sublabel }: { icon: string; label: string; 
 
 function Arrow() {
   return (
-    <span className="text-[#00ff88] text-2xl hidden md:block">→</span>
+    <span className="text-[#e8c25a] text-2xl hidden md:block">→</span>
   );
 }

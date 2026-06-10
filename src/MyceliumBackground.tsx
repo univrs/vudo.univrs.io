@@ -31,25 +31,25 @@ function useIsMobile() {
 
 function StaticBackground() {
   return (
-    <div className="fixed inset-0 -z-10 bg-[#0a0a0f] overflow-hidden">
+    <div className="fixed inset-0 -z-10 bg-[#080808] overflow-hidden">
       {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00ff88]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#8b5cf6]/10 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#fbbf24]/5 rounded-full blur-2xl" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e8c25a]/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#b9a06c]/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#f4d77c]/5 rounded-full blur-2xl" />
       
       {/* Static dots pattern */}
       <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="20" cy="20" r="1" fill="#00ff88" opacity="0.5" />
+            <circle cx="20" cy="20" r="1" fill="#e8c25a" opacity="0.5" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#dots)" />
       </svg>
       
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0f]/80" />
-      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[#0a0a0f]/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#080808]/80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[#080808]/60" />
     </div>
   );
 }
@@ -126,9 +126,9 @@ function MyceliumNode({ node }: { node: Node }) {
   
   const color = useMemo(() => {
     switch (node.type) {
-      case 'mitan': return new THREE.Color('#00ff88');
-      case 'spirit': return new THREE.Color('#8b5cf6');
-      default: return new THREE.Color('#00cc6a');
+      case 'mitan': return new THREE.Color('#e8c25a');
+      case 'spirit': return new THREE.Color('#b9a06c');
+      default: return new THREE.Color('#7a6a32');
     }
   }, [node.type]);
   
@@ -159,7 +159,7 @@ function MyceliumEdge({ from, to }: { from: THREE.Vector3; to: THREE.Vector3 }) 
   }, [from, to]);
   
   const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
-  const material = useMemo(() => new THREE.LineBasicMaterial({ color: '#00ff88', transparent: true, opacity: 0.2 }), []);
+  const material = useMemo(() => new THREE.LineBasicMaterial({ color: '#e8c25a', transparent: true, opacity: 0.2 }), []);
   
   return <primitive object={new THREE.Line(geometry, material)} />;
 }
@@ -221,7 +221,7 @@ export function MyceliumBackground({
   }
   
   return (
-    <div className="fixed inset-0 -z-10 bg-[#0a0a0f]">
+    <div className="fixed inset-0 -z-10 bg-[#080808]">
       <Canvas 
         camera={{ position: [0, 0, 12], fov: 60 }} 
         gl={{ antialias: true, alpha: true, failIfMajorPerformanceCaveat: true }}
@@ -234,10 +234,10 @@ export function MyceliumBackground({
       >
         <ambientLight intensity={0.1} />
         <MyceliumNetwork nodeCount={nodeCount} connectionProbability={connectionProbability} />
-        <fog attach="fog" args={['#0a0a0f', 8, 20]} />
+        <fog attach="fog" args={['#080808', 8, 20]} />
       </Canvas>
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0f]/80" />
-      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[#0a0a0f]/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#080808]/80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[#080808]/60" />
     </div>
   );
 }

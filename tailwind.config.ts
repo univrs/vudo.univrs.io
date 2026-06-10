@@ -6,15 +6,17 @@ export default {
     theme: {
         extend: {
             colors: {
-                "vudo-glow": "#00ff88",
-                "vudo-dark": "#0a0a0f",
-                "vudo-surface": "#12121a",
-                mycelium: "#8b5cf6",
-                "veve-gold": "#fbbf24",
+                "vudo-glow": "#e8c25a",
+                "vudo-dark": "#080808",
+                "vudo-surface": "#0f0f0c",
+                mycelium: "#b9a06c",
+                "veve-gold": "#f4d77c",
             },
             fontFamily: {
                 mono: ["JetBrains Mono", "monospace"],
-                display: ["Space Grotesk", "sans-serif"],
+                display: ["Cinzel Decorative", "Cinzel", "serif"],
+                body: ["Cormorant Garamond", "Garamond", "serif"],
+                serif: ["Cormorant Garamond", "Garamond", "serif"],
             },
         },
     },

@@ -11,28 +11,28 @@
 
 :root {
     /* Core palette - Dark mode */
-    --vudo-void: #0a0a0f;
-    --vudo-substrate: #1a1a2e;
-    --vudo-mycelium: #00ff88;
-    --vudo-cytoplasm: #ffd700;
-    --vudo-inactive: #2d2d44;
+    --vudo-void: #080808;
+    --vudo-substrate: #1a1a12;
+    --vudo-mycelium: #e8c25a;
+    --vudo-cytoplasm: #f4d77c;
+    --vudo-inactive: #2d2a1c;
 
     /* Resource colors */
-    --vudo-compute: #ff6b6b;
-    --vudo-storage: #4ecdc4;
-    --vudo-bandwidth: #a855f7;
+    --vudo-compute: #f4d77c;
+    --vudo-storage: #b9a06c;
+    --vudo-bandwidth: #7a6a32;
 
     /* UI colors - Dark mode */
-    --vudo-text: #ffffff;
-    --vudo-text-dim: rgba(255, 255, 255, 0.6);
-    --vudo-border: rgba(255, 255, 255, 0.1);
-    --vudo-glow: rgba(127, 219, 202, 0.3);
-    --vudo-surface: #12121a;
+    --vudo-text: #f3ecd8;
+    --vudo-text-dim: #d4cab0;
+    --vudo-border: rgba(232, 194, 90, 0.22);
+    --vudo-glow: rgba(232, 194, 90, 0.25);
+    --vudo-surface: #0f0f0c;
 
     /* Typography - Match site fonts */
-    --font-display: "Space Grotesk", sans-serif;
+    --font-display: "Cinzel Decorative", "Cinzel", serif;
     --font-mono: "JetBrains Mono", monospace;
-    --font-body: "Inter", system-ui, sans-serif;
+    --font-body: "Cormorant Garamond", "Iowan Old Style", Garamond, serif;
 
     /* Spacing */
     --space-xs: 0.25rem;
@@ -44,20 +44,20 @@
 
 /* Light mode overrides for Physarum components */
 .light {
-    --vudo-void: #f8fafc;
-    --vudo-substrate: #e2e8f0;
-    --vudo-mycelium: #047857;
-    --vudo-cytoplasm: #d97706;
-    --vudo-inactive: #cbd5e1;
+    --vudo-void: #faf8f0;
+    --vudo-substrate: #f4efe2;
+    --vudo-mycelium: #7a6a32;
+    --vudo-cytoplasm: #b9a06c;
+    --vudo-inactive: #d4cab0;
 
-    --vudo-compute: #dc2626;
-    --vudo-storage: #0d9488;
-    --vudo-bandwidth: #7c3aed;
+    --vudo-compute: #7a6a32;
+    --vudo-storage: #b9a06c;
+    --vudo-bandwidth: #5a1320;
 
-    --vudo-text: #0f172a;
-    --vudo-text-dim: rgba(15, 23, 42, 0.7);
-    --vudo-border: rgba(15, 23, 42, 0.15);
-    --vudo-glow: rgba(4, 120, 87, 0.2);
+    --vudo-text: #221d12;
+    --vudo-text-dim: #4a4232;
+    --vudo-border: rgba(122, 106, 50, 0.3);
+    --vudo-glow: rgba(122, 106, 50, 0.2);
     --vudo-surface: #ffffff;
 }
 
@@ -98,7 +98,7 @@
     left: var(--space-lg);
     z-index: 10;
 
-    background: rgba(26, 26, 46, 0.85);
+    background: rgba(12, 12, 10, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid var(--vudo-border);
     border-radius: 12px;
@@ -156,7 +156,7 @@
     font-size: 0.7rem;
     padding: var(--space-xs) var(--space-sm);
 
-    background: rgba(45, 45, 68, 0.6);
+    background: rgba(45, 42, 28, 0.6);
     border: 1px solid var(--vudo-border);
     border-radius: 6px;
     color: var(--vudo-text-dim);
@@ -166,13 +166,13 @@
 }
 
 .scenario-btn:hover {
-    background: rgba(127, 219, 202, 0.1);
+    background: rgba(232, 194, 90, 0.1);
     border-color: var(--vudo-mycelium);
     color: var(--vudo-text);
 }
 
 .scenario-btn.active {
-    background: rgba(127, 219, 202, 0.2);
+    background: rgba(232, 194, 90, 0.2);
     border-color: var(--vudo-mycelium);
     color: var(--vudo-mycelium);
     box-shadow: 0 0 12px var(--vudo-glow);
@@ -190,7 +190,7 @@
     font-size: 0.75rem;
     padding: var(--space-sm) var(--space-md);
 
-    background: rgba(45, 45, 68, 0.6);
+    background: rgba(45, 42, 28, 0.6);
     border: 1px solid var(--vudo-border);
     border-radius: 6px;
     color: var(--vudo-text);
@@ -200,12 +200,12 @@
 }
 
 .sim-btn:hover {
-    background: rgba(127, 219, 202, 0.1);
+    background: rgba(232, 194, 90, 0.1);
     border-color: var(--vudo-mycelium);
 }
 
 .sim-btn.active {
-    background: rgba(255, 215, 0, 0.15);
+    background: rgba(244, 215, 124, 0.15);
     border-color: var(--vudo-cytoplasm);
     color: var(--vudo-cytoplasm);
 }
@@ -220,7 +220,7 @@
     right: var(--space-lg);
     z-index: 10;
 
-    background: rgba(26, 26, 46, 0.85);
+    background: rgba(12, 12, 10, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid var(--vudo-border);
     border-radius: 12px;
@@ -269,9 +269,9 @@
 
     background: linear-gradient(
         to top,
-        rgba(10, 10, 15, 1) 0%,
-        rgba(10, 10, 15, 0.95) 60%,
-        rgba(10, 10, 15, 0.7) 85%,
+        rgba(8, 8, 8, 1) 0%,
+        rgba(8, 8, 8, 0.95) 60%,
+        rgba(8, 8, 8, 0.7) 85%,
         transparent 100%
     );
     padding: var(--space-xl) var(--space-lg) var(--space-lg);
@@ -368,7 +368,7 @@
     font-family: var(--font-mono);
     font-size: 0.65rem;
     color: var(--vudo-mycelium);
-    text-shadow: 0 0 8px rgba(127, 219, 202, 0.5);
+    text-shadow: 0 0 8px rgba(232, 194, 90, 0.5);
     pointer-events: none;
     white-space: nowrap;
     transform: translate(-50%, -50%);
@@ -476,7 +476,7 @@
 }
 
 .physarum-section .explanation-card {
-    background: rgba(26, 26, 46, 0.6);
+    background: rgba(12, 12, 10, 0.6);
     border: 1px solid var(--vudo-border);
     border-radius: 12px;
     padding: var(--space-lg);
@@ -513,8 +513,8 @@
 .physarum-section .vudo-connection {
     background: linear-gradient(
         135deg,
-        rgba(127, 219, 202, 0.1),
-        rgba(168, 85, 247, 0.1)
+        rgba(232, 194, 90, 0.1),
+        rgba(185, 160, 108, 0.1)
     );
     border: 1px solid var(--vudo-border);
     border-radius: 12px;
@@ -568,7 +568,7 @@
 }
 
 .physarum-section .tech-specs {
-    background: rgba(26, 26, 46, 0.4);
+    background: rgba(12, 12, 10, 0.4);
     border: 1px solid var(--vudo-border);
     border-radius: 12px;
     overflow: hidden;
@@ -611,7 +611,7 @@
     font-size: 0.8rem;
     color: var(--vudo-text-dim);
     padding: var(--space-xs) 0;
-    border-bottom: 1px solid rgba(61, 61, 92, 0.3);
+    border-bottom: 1px solid rgba(61, 58, 40, 0.3);
 }
 
 .physarum-section .spec-group li:last-child {
@@ -640,7 +640,7 @@
     position: absolute;
     z-index: 100;
 
-    background: rgba(26, 26, 46, 0.95);
+    background: rgba(12, 12, 10, 0.95);
     border: 1px solid var(--vudo-mycelium);
     border-radius: 8px;
     padding: var(--space-sm) var(--space-md);
@@ -763,36 +763,36 @@
 }
 
 .light .scenario-btn {
-    background: rgba(15, 23, 42, 0.05);
+    background: rgba(34, 29, 18, 0.05);
     border-color: var(--vudo-border);
     color: var(--vudo-text-dim);
 }
 
 .light .scenario-btn:hover {
-    background: rgba(4, 120, 87, 0.1);
+    background: rgba(122, 106, 50, 0.1);
     border-color: var(--vudo-mycelium);
     color: var(--vudo-text);
 }
 
 .light .scenario-btn.active {
-    background: rgba(4, 120, 87, 0.15);
+    background: rgba(122, 106, 50, 0.15);
     border-color: var(--vudo-mycelium);
     color: var(--vudo-mycelium);
 }
 
 .light .sim-btn {
-    background: rgba(15, 23, 42, 0.05);
+    background: rgba(34, 29, 18, 0.05);
     border-color: var(--vudo-border);
     color: var(--vudo-text);
 }
 
 .light .sim-btn:hover {
-    background: rgba(4, 120, 87, 0.1);
+    background: rgba(122, 106, 50, 0.1);
     border-color: var(--vudo-mycelium);
 }
 
 .light .sim-btn.active {
-    background: rgba(217, 119, 6, 0.15);
+    background: rgba(185, 160, 108, 0.15);
     border-color: var(--vudo-cytoplasm);
     color: var(--vudo-cytoplasm);
 }
@@ -800,9 +800,9 @@
 .light .physarum-info {
     background: linear-gradient(
         to top,
-        rgba(248, 250, 252, 1) 0%,
-        rgba(248, 250, 252, 0.95) 60%,
-        rgba(248, 250, 252, 0.7) 85%,
+        rgba(250, 248, 240, 1) 0%,
+        rgba(250, 248, 240, 0.95) 60%,
+        rgba(250, 248, 240, 0.7) 85%,
         transparent 100%
     );
 }
@@ -820,8 +820,8 @@
 .light .physarum-section .vudo-connection {
     background: linear-gradient(
         135deg,
-        rgba(4, 120, 87, 0.08),
-        rgba(124, 58, 237, 0.08)
+        rgba(122, 106, 50, 0.08),
+        rgba(185, 160, 108, 0.08)
     );
     border-color: var(--vudo-border);
 }

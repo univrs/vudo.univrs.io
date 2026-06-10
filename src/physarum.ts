@@ -102,25 +102,25 @@ export const DEFAULT_VIZ_CONFIG: VisualizationConfig = {
 
 export const VUDO_COLORS = {
     // Primary mystical palette
-    void: "#0a0a0f", // Deep space black
-    mycelium: "#00ff88", // Site green (matches --glow-green)
-    cytoplasm: "#ffd700", // Living gold
-    substrate: "#1a1a2e", // Dark purple-black
+    void: "#080808", // Deep space black
+    mycelium: "#e8c25a", // Site green (matches --glow-green)
+    cytoplasm: "#f4d77c", // Living gold
+    substrate: "#1a1a12", // Dark purple-black
 
     // Gradient colors for resource types
-    compute: "#ff6b6b", // Warm coral for compute
-    storage: "#4ecdc4", // Cool cyan for storage
-    bandwidth: "#a855f7", // Purple for bandwidth
+    compute: "#f4d77c", // Warm coral for compute
+    storage: "#b9a06c", // Cool cyan for storage
+    bandwidth: "#7a6a32", // Purple for bandwidth
 
     // UI accents
-    glow: "#00ff88",
-    pulse: "#ffd700",
-    inactive: "#2d2d44",
+    glow: "#e8c25a",
+    pulse: "#f4d77c",
+    inactive: "#2d2a1c",
 
     // Tube flow visualization
-    flowHigh: "#ffd700",
-    flowMedium: "#00ff88",
-    flowLow: "#4a4a6a",
+    flowHigh: "#f4d77c",
+    flowMedium: "#e8c25a",
+    flowLow: "#4a452e",
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -166,11 +166,11 @@ function MyceliumNode({ node }: { node: Node }) {
     const color = useMemo(() => {
         switch (node.type) {
             case "mitan":
-                return new THREE.Color("#00ff88");
+                return new THREE.Color("#e8c25a");
             case "spirit":
-                return new THREE.Color("#8b5cf6");
+                return new THREE.Color("#b9a06c");
             default:
-                return new THREE.Color("#00cc6a");
+                return new THREE.Color("#7a6a32");
         }
     }, [node.type]);
 
@@ -219,7 +219,7 @@ function MyceliumEdge({
     const material = useMemo(
         () =>
             new THREE.LineBasicMaterial({
-                color: "#00ff88",
+                color: "#e8c25a",
                 transparent: true,
                 opacity: 0.2,
             }),
@@ -276,7 +276,7 @@ function WebGLBackground({ nodeCount, connectionProbability }: MyceliumProps) {
                     nodeCount={nodeCount}
                     connectionProbability={connectionProbability}
                 />
-                <fog attach="fog" args={["#0a0a0f", 8, 20]} />
+                <fog attach="fog" args={["#080808", 8, 20]} />
             </Canvas>
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--bg-primary)]/80" />
             <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[var(--bg-primary)]/60" />

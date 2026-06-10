@@ -16,7 +16,13 @@ export function Navigation() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-surface)]/95 backdrop-blur-sm border-b border-[var(--border-color)]">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Left: Logo */}
-        <Link to="/" className="text-[var(--glow-green)] font-bold text-xl tracking-tight">
+        <Link to="/" className="flex items-center gap-2 text-[var(--glow-green)] font-bold text-xl tracking-tight font-display">
+          <img
+            src="/sunlion-medallion.webp"
+            alt=""
+            className="w-8 h-8 rounded-full"
+            style={{ animation: 'spin 220s linear infinite' }}
+          />
           VUDO
         </Link>
 

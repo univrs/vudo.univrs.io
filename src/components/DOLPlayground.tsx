@@ -642,7 +642,7 @@ export function DOLPlayground() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                 >
-                    <h2 className="text-sm tracking-[0.3em] uppercase text-[#00ff88]/80 mb-4">
+                    <h2 className="text-sm tracking-[0.3em] uppercase text-[#e8c25a]/80 mb-4">
                         Live Playground
                     </h2>
                     <p className="text-2xl md:text-3xl text-white/90 font-light">
@@ -658,7 +658,7 @@ export function DOLPlayground() {
                             onClick={() => setActiveExample(i)}
                             className={`px-4 py-2 text-sm rounded-sm transition-all duration-300 min-h-[44px] ${
                                 i === activeExample
-                                    ? "bg-[#00ff88]/20 text-[#00ff88] border border-[#00ff88]/50"
+                                    ? "bg-[#e8c25a]/20 text-[#e8c25a] border border-[#e8c25a]/50"
                                     : "bg-white/5 text-white/50 border border-white/10 hover:border-white/30"
                             }`}
                         >
@@ -676,7 +676,7 @@ export function DOLPlayground() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="bg-[#0d0d14] border border-white/10 rounded-sm overflow-hidden">
+                        <div className="bg-[#0c0c0a] border border-white/10 rounded-sm overflow-hidden">
                             {/* Editor header */}
                             <div className="flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/10">
                                 <div className="flex items-center gap-2">
@@ -690,7 +690,7 @@ export function DOLPlayground() {
                                         .dol
                                     </span>
                                 </div>
-                                <span className="text-xs text-[#00ff88]/60 font-mono">
+                                <span className="text-xs text-[#e8c25a]/60 font-mono">
                                     DOL v0.8.0
                                 </span>
                             </div>
@@ -708,7 +708,7 @@ export function DOLPlayground() {
                         </div>
 
                         {/* Glow effect */}
-                        <div className="absolute -inset-2 bg-[#00ff88]/5 blur-xl -z-10 rounded-lg" />
+                        <div className="absolute -inset-2 bg-[#e8c25a]/5 blur-xl -z-10 rounded-lg" />
                     </motion.div>
 
                     {/* Output Panel */}
@@ -718,7 +718,7 @@ export function DOLPlayground() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="bg-[#0d0d14] border border-white/10 rounded-sm overflow-hidden h-full">
+                        <div className="bg-[#0c0c0a] border border-white/10 rounded-sm overflow-hidden h-full">
                             {/* Output header */}
                             <div className="flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/10">
                                 <span className="text-xs text-white/40 font-mono">
@@ -735,7 +735,7 @@ export function DOLPlayground() {
                                             }}
                                         />
                                     ) : status === 'success' ? (
-                                        <div className="w-2 h-2 rounded-full bg-[#00ff88]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#e8c25a]" />
                                     ) : status === 'error' ? (
                                         <div className="w-2 h-2 rounded-full bg-red-500" />
                                     ) : null}
@@ -764,7 +764,7 @@ export function DOLPlayground() {
                                         >
                                             <div className="text-center">
                                                 <motion.div
-                                                    className="w-8 h-8 border-2 border-[#00ff88]/30 border-t-[#00ff88] rounded-full mx-auto mb-3"
+                                                    className="w-8 h-8 border-2 border-[#e8c25a]/30 border-t-[#e8c25a] rounded-full mx-auto mb-3"
                                                     animate={{ rotate: 360 }}
                                                     transition={{
                                                         duration: 1,
@@ -783,7 +783,7 @@ export function DOLPlayground() {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             className={`text-sm leading-relaxed font-mono whitespace-pre-wrap ${
-                                                status === 'error' ? 'text-red-400/80' : 'text-[#00ff88]/80'
+                                                status === 'error' ? 'text-red-400/80' : 'text-[#e8c25a]/80'
                                             }`}
                                         >
                                             {outputText}
@@ -797,7 +797,7 @@ export function DOLPlayground() {
                                                         repeat: Infinity,
                                                     }}
                                                     className={`inline-block w-2 h-4 ml-1 ${
-                                                        status === 'error' ? 'bg-red-400' : 'bg-[#00ff88]'
+                                                        status === 'error' ? 'bg-red-400' : 'bg-[#e8c25a]'
                                                     }`}
                                                 />
                                             )}
@@ -808,7 +808,7 @@ export function DOLPlayground() {
                         </div>
 
                         {/* Glow effect */}
-                        <div className="absolute -inset-2 bg-[#8b5cf6]/5 blur-xl -z-10 rounded-lg" />
+                        <div className="absolute -inset-2 bg-[#b9a06c]/5 blur-xl -z-10 rounded-lg" />
                     </motion.div>
                 </div>
 

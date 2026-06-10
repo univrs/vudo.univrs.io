@@ -25,7 +25,7 @@ export function ThermodynamicEconomics() {
     <div className="min-h-screen bg-[var(--bg-primary)] pt-20">
       {/* Header */}
       <section className="max-w-5xl mx-auto px-6 py-8">
-        <Link to="/learn" className="text-[var(--text-muted)] hover:text-[#00ff88] text-sm mb-4 inline-block">
+        <Link to="/learn" className="text-[var(--text-muted)] hover:text-[#e8c25a] text-sm mb-4 inline-block">
           ← Back to Learn
         </Link>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -40,8 +40,8 @@ export function ThermodynamicEconomics() {
             All calculations run in your browser via WASM compiled from DOL → Rust.
           </p>
           {wasmReady ? (
-            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00ff88]/10 text-[#00ff88] text-sm">
-              <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e8c25a]/10 text-[#e8c25a] text-sm">
+              <span className="w-2 h-2 rounded-full bg-[#e8c25a] animate-pulse" />
               WASM Loaded (56 KB)
             </div>
           ) : (
@@ -62,7 +62,7 @@ export function ThermodynamicEconomics() {
               onClick={() => setActiveSection(section)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 activeSection === section
-                  ? 'bg-[#00ff88]/20 text-[#00ff88]'
+                  ? 'bg-[#e8c25a]/20 text-[#e8c25a]'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -143,7 +143,7 @@ impl EnergySystemMetrics {
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         Try the EROEI Calculator →
       </button>
@@ -195,9 +195,9 @@ function EroeiSection({ onNext }: { onNext: () => void }) {
             step="100"
             value={nodes}
             onChange={e => setNodes(Number(e.target.value))}
-            className="w-full accent-[#00ff88]"
+            className="w-full accent-[#e8c25a]"
           />
-          <div className="text-2xl font-mono text-[#00ff88] mt-2">{nodes.toLocaleString()}</div>
+          <div className="text-2xl font-mono text-[#e8c25a] mt-2">{nodes.toLocaleString()}</div>
         </div>
         <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
           <label className="block text-sm text-[var(--text-muted)] mb-2">Solar Capacity (MW)</label>
@@ -208,9 +208,9 @@ function EroeiSection({ onNext }: { onNext: () => void }) {
             step="0.5"
             value={solarMW}
             onChange={e => setSolarMW(Number(e.target.value))}
-            className="w-full accent-[#00ff88]"
+            className="w-full accent-[#e8c25a]"
           />
-          <div className="text-2xl font-mono text-[#00ff88] mt-2">{solarMW.toFixed(1)} MW</div>
+          <div className="text-2xl font-mono text-[#e8c25a] mt-2">{solarMW.toFixed(1)} MW</div>
         </div>
       </div>
 
@@ -241,7 +241,7 @@ function EroeiSection({ onNext }: { onNext: () => void }) {
         <div className="space-y-3 font-mono text-sm">
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Solar Output:</span>
-            <span className="text-[#00ff88]">{results.solar?.totalOutputKwh.toLocaleString()} kWh/year</span>
+            <span className="text-[#e8c25a]">{results.solar?.totalOutputKwh.toLocaleString()} kWh/year</span>
           </div>
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Solar Input:</span>
@@ -254,7 +254,7 @@ function EroeiSection({ onNext }: { onNext: () => void }) {
           <hr className="border-[var(--border-color)]" />
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Net Energy:</span>
-            <span className={results.solar && results.hyphal && results.solar.totalOutputKwh - combinedInput > 0 ? 'text-[#00ff88]' : 'text-red-500'}>
+            <span className={results.solar && results.hyphal && results.solar.totalOutputKwh - combinedInput > 0 ? 'text-[#e8c25a]' : 'text-red-500'}>
               {((results.solar?.totalOutputKwh ?? 0) - combinedInput).toLocaleString()} kWh/year
             </span>
           </div>
@@ -267,7 +267,7 @@ function EroeiSection({ onNext }: { onNext: () => void }) {
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         Explore Small-World Networks →
       </button>
@@ -314,9 +314,9 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
             step="10"
             value={n}
             onChange={e => setN(Number(e.target.value))}
-            className="w-full accent-[#8b5cf6]"
+            className="w-full accent-[#b9a06c]"
           />
-          <div className="text-2xl font-mono text-[#8b5cf6] mt-2">{n}</div>
+          <div className="text-2xl font-mono text-[#b9a06c] mt-2">{n}</div>
         </div>
         <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
           <label className="block text-sm text-[var(--text-muted)] mb-2">Average Degree (k)</label>
@@ -327,9 +327,9 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
             step="1"
             value={k}
             onChange={e => setK(Number(e.target.value))}
-            className="w-full accent-[#8b5cf6]"
+            className="w-full accent-[#b9a06c]"
           />
-          <div className="text-2xl font-mono text-[#8b5cf6] mt-2">{k}</div>
+          <div className="text-2xl font-mono text-[#b9a06c] mt-2">{k}</div>
         </div>
         <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
           <label className="block text-sm text-[var(--text-muted)] mb-2">Clustering (C)</label>
@@ -340,9 +340,9 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
             step="0.01"
             value={clustering}
             onChange={e => setClustering(Number(e.target.value))}
-            className="w-full accent-[#8b5cf6]"
+            className="w-full accent-[#b9a06c]"
           />
-          <div className="text-2xl font-mono text-[#8b5cf6] mt-2">{clustering.toFixed(2)}</div>
+          <div className="text-2xl font-mono text-[#b9a06c] mt-2">{clustering.toFixed(2)}</div>
         </div>
         <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
           <label className="block text-sm text-[var(--text-muted)] mb-2">Path Length (L)</label>
@@ -353,9 +353,9 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
             step="0.1"
             value={pathLength}
             onChange={e => setPathLength(Number(e.target.value))}
-            className="w-full accent-[#8b5cf6]"
+            className="w-full accent-[#b9a06c]"
           />
-          <div className="text-2xl font-mono text-[#8b5cf6] mt-2">{pathLength.toFixed(1)}</div>
+          <div className="text-2xl font-mono text-[#b9a06c] mt-2">{pathLength.toFixed(1)}</div>
         </div>
       </div>
 
@@ -399,7 +399,7 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
           <hr className="border-[var(--border-color)]" />
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Interpretation:</span>
-            <span className={results.sigma > 1 ? 'text-[#00ff88]' : 'text-yellow-500'}>
+            <span className={results.sigma > 1 ? 'text-[#e8c25a]' : 'text-yellow-500'}>
               {results.sigma > 1
                 ? 'High clustering + short paths'
                 : 'Lacks small-world properties'}
@@ -408,16 +408,16 @@ function NetworkSection({ onNext }: { onNext: () => void }) {
         </div>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/30">
+      <div className="p-4 rounded-lg bg-[#b9a06c]/10 border border-[#b9a06c]/30">
         <p className="text-sm text-[var(--text-secondary)]">
-          <strong className="text-[#8b5cf6]">Dunbar's Number:</strong> Human social networks naturally form
+          <strong className="text-[#b9a06c]">Dunbar's Number:</strong> Human social networks naturally form
           small-world structures with ~150 nodes (N=150, k≈6). Try these values to see σ ≈ 7.5!
         </p>
       </div>
 
       <button
         onClick={onNext}
-        className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+        className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
       >
         See Full Analysis →
       </button>
@@ -450,34 +450,34 @@ function CombinedSection() {
           step="100"
           value={nodes}
           onChange={e => setNodes(Number(e.target.value))}
-          className="w-full accent-[#00ff88]"
+          className="w-full accent-[#e8c25a]"
         />
-        <div className="text-2xl font-mono text-[#00ff88] mt-2">{nodes.toLocaleString()} nodes</div>
+        <div className="text-2xl font-mono text-[#e8c25a] mt-2">{nodes.toLocaleString()} nodes</div>
       </div>
 
       <div className="p-6 rounded-xl border border-[var(--border-color)] bg-black font-mono text-sm whitespace-pre overflow-x-auto">
         <div className="text-[var(--text-muted)] mb-2">$ thermo full {nodes}</div>
-        <div className="text-[#00ff88]">{output}</div>
+        <div className="text-[#e8c25a]">{output}</div>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#00ff88]/10 border border-[#00ff88]/30">
+      <div className="p-4 rounded-lg bg-[#e8c25a]/10 border border-[#e8c25a]/30">
         <p className="text-sm text-[var(--text-secondary)]">
-          <strong className="text-[#00ff88]">What you just learned:</strong> This entire analysis runs in
+          <strong className="text-[#e8c25a]">What you just learned:</strong> This entire analysis runs in
           your browser using WASM compiled from DOL schemas. No server required. The same code runs as a
-          CLI tool (<code className="text-[#00ff88]">thermo</code>) and in the browser.
+          CLI tool (<code className="text-[#e8c25a]">thermo</code>) and in the browser.
         </p>
       </div>
 
       <div className="flex gap-4">
         <Link
           to="/editor"
-          className="px-6 py-3 bg-[#00ff88] text-black font-medium rounded-lg hover:bg-[#00ff88]/90 transition"
+          className="px-6 py-3 bg-[#e8c25a] text-black font-medium rounded-lg hover:bg-[#e8c25a]/90 transition"
         >
           Try the DOL Editor
         </Link>
         <Link
           to="/learn"
-          className="px-6 py-3 border border-[var(--border-color)] text-[var(--text-primary)] font-medium rounded-lg hover:border-[#00ff88]/50 transition"
+          className="px-6 py-3 border border-[var(--border-color)] text-[var(--text-primary)] font-medium rounded-lg hover:border-[#e8c25a]/50 transition"
         >
           More Tutorials
         </Link>
@@ -491,7 +491,7 @@ function ConceptCard({ title, description, formula }: { title: string; descripti
     <div className="p-6 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]">
       <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
       <p className="text-sm text-[var(--text-secondary)] mb-4">{description}</p>
-      <code className="block p-3 rounded bg-black text-[#00ff88] text-sm font-mono">{formula}</code>
+      <code className="block p-3 rounded bg-black text-[#e8c25a] text-sm font-mono">{formula}</code>
     </div>
   );
 }
@@ -508,7 +508,7 @@ function CodeBlock({ title, code }: { title: string; code: string }) {
         <span className="text-xs text-[var(--text-muted)] ml-2">{title}</span>
       </div>
       <pre className="p-4 bg-black overflow-x-auto text-sm">
-        <code className="text-[#00ff88]">{code}</code>
+        <code className="text-[#e8c25a]">{code}</code>
       </pre>
     </div>
   );
@@ -526,7 +526,7 @@ function ResultCard({
   detail: string;
 }) {
   const colors = {
-    excellent: 'text-[#00ff88] border-[#00ff88]/30 bg-[#00ff88]/5',
+    excellent: 'text-[#e8c25a] border-[#e8c25a]/30 bg-[#e8c25a]/5',
     good: 'text-blue-400 border-blue-400/30 bg-blue-400/5',
     warning: 'text-yellow-500 border-yellow-500/30 bg-yellow-500/5',
     critical: 'text-red-500 border-red-500/30 bg-red-500/5',
