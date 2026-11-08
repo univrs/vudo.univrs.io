@@ -98,6 +98,14 @@ const phases: Phase[] = [
         description: "Entropy-Nexus-Revival primitives",
         deliverables: ["Core types", "Entropy calculator", "Nexus topology", "Revival pool"],
     },
+    {
+        id: "phase5",
+        name: "Phase 5: Spirit Hosting",
+        status: "pending",
+        tests: 0,
+        description: "Nodes run, place, and migrate Spirits (plan: univrs/network docs/SPIRIT-HOSTING-PLAN.md)",
+        deliverables: ["H0 one host ABI + real vudo CLI", "H1 vudo_vm in mycelial-node", "H2 distribution by hash", "S gradient scheduler", "M stop-and-copy migration"],
+    },
 ];
 
 const repositories: Repository[] = [
