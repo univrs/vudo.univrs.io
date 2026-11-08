@@ -70,7 +70,7 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q3",
                 title: "DOL → WASM Compiler",
-                description: "Full compilation pipeline: DOL → HIR → WASM",
+                description: "Spirits compile DOL → WASM; next: host ABI + typed codegen",
                 status: "current",
             },
             {
