@@ -76,11 +76,11 @@ const phases: Phase[] = [
     },
     {
         id: "phase3",
-        name: "Phase 3: MLIR + WASM Pipeline",
-        status: "complete",
-        tests: 50,
-        description: "DOL -> HIR -> MLIR -> WASM compilation",
-        deliverables: ["MLIR lowering", "WASM backend", "add.wasm validated"],
+        name: "Phase 3: DOL -> WASM Pipeline",
+        status: "active",
+        tests: 161,
+        description: "DOL -> AST -> WASM (wasm-encoder); Spirits compile to executable WASM",
+        deliverables: ["Function body codegen", "Gen structs & methods", "Spirit pipeline wired", "Next: host ABI + type fidelity"],
     },
     {
         id: "phase4a",
@@ -101,10 +101,10 @@ const phases: Phase[] = [
 ];
 
 const repositories: Repository[] = [
-    { name: "univrs-dol", url: "https://github.com/univrs/univrs-dol", status: "stable", tests: 1705 },
-    { name: "univrs-enr", url: "https://github.com/univrs/univrs-enr", status: "active", tests: 0 },
-    { name: "univrs-network", url: "https://github.com/univrs/univrs-network", status: "pending", tests: 0 },
-    { name: "univrs-vudo", url: "https://github.com/univrs/univrs-vudo", status: "stable", tests: 402 },
+    { name: "univrs-dol", url: "https://github.com/univrs/dol", status: "stable", tests: 2306 },
+    { name: "univrs-enr", url: "https://github.com/univrs/enr", status: "active", tests: 0 },
+    { name: "univrs-network", url: "https://github.com/univrs/network", status: "pending", tests: 0 },
+    { name: "univrs-vudo", url: "https://github.com/univrs/vudo", status: "stable", tests: 402 },
 ];
 
 const enrSubsystems: ENRSubsystem[] = [
