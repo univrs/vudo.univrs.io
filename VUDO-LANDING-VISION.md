@@ -129,7 +129,7 @@ VUDO: THE LIVING PLATFORM
 │         THE IMAGINARIUM             │
 │    Distributed creative network     │
 ├─────────────────────────────────────┤
-│            VUDO OS                  │
+│             DOLOS                   │
 │   Spirits • Séances • Mycelium      │
 ├─────────────────────────────────────┤
 │           VUDO VM                   │
@@ -480,7 +480,7 @@ YEAR 2: MANIFESTATION                    ○
 Q1  VUDO VM
     WebAssembly execution, sandboxing
     
-Q2  VUDO OS
+Q2  DOLOS (DOL Operating System, formerly VUDO OS)
     Spirits, Ghosts, Spells, Identity
     
 Q3  Tauri IDE
