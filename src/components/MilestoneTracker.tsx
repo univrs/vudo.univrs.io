@@ -79,8 +79,8 @@ const phases: Phase[] = [
         name: "Phase 3: DOL -> WASM Pipeline",
         status: "active",
         tests: 161,
-        description: "DOL -> AST -> WASM (wasm-encoder); Spirits compile to executable WASM",
-        deliverables: ["Function body codegen", "Gen structs & methods", "Spirit pipeline wired", "Next: host ABI + type fidelity"],
+        description: "DOL -> AST -> WASM (wasm-encoder); DOL 0.8.2 Spirits link and run in the VUDO VM",
+        deliverables: ["Function body codegen", "Gen structs & methods", "Spirit pipeline wired", "VUDO host ABI (15 functions)", "Next: type enforcement + language coverage"],
     },
     {
         id: "phase4a",
@@ -101,7 +101,8 @@ const phases: Phase[] = [
 ];
 
 const repositories: Repository[] = [
-    { name: "univrs-dol", url: "https://github.com/univrs/dol", status: "stable", tests: 2306 },
+    // dol 0.8.2 root crate: 2,183 tests (default features), 2,405 with --features cli,serde,wasm
+    { name: "univrs-dol", url: "https://github.com/univrs/dol", status: "stable", tests: 2405 },
     { name: "univrs-enr", url: "https://github.com/univrs/enr", status: "active", tests: 0 },
     { name: "univrs-network", url: "https://github.com/univrs/network", status: "pending", tests: 0 },
     { name: "univrs-vudo", url: "https://github.com/univrs/vudo", status: "stable", tests: 402 },

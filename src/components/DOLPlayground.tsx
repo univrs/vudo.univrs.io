@@ -691,7 +691,7 @@ export function DOLPlayground() {
                                     </span>
                                 </div>
                                 <span className="text-xs text-[#e8c25a]/60 font-mono">
-                                    DOL v0.8.0
+                                    DOL 0.8.0 (browser build)
                                 </span>
                             </div>
 
@@ -773,7 +773,7 @@ export function DOLPlayground() {
                                                     }}
                                                 />
                                                 <p className="text-white/40 text-sm">
-                                                    Compiling to MLIR...
+                                                    Compiling to WASM...
                                                 </p>
                                             </div>
                                         </motion.div>

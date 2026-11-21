@@ -136,7 +136,7 @@ VUDO: THE LIVING PLATFORM
 │    WebAssembly execution layer      │
 ├─────────────────────────────────────┤
 │        DOL COMPILER                 │
-│   Ontology → MLIR → WASM → Native   │
+│   Ontology → WASM · Native (LLVM)   │
 ├─────────────────────────────────────┤
 │       DOL LANGUAGE                  │
 │  Gene • Trait • Constraint • System │
@@ -225,12 +225,12 @@ It is rigorous engineering with expansive vision.
 
 ────────────────────────────────────
 
-MLIR Alignment
-  DOL types map directly to Multi-Level IR
-  Compilation targets: WASM, LLVM, Native
-  Zero-cost ontological abstractions
+Compilation Targets
+  WASM via a direct backend (DOL 0.8.2: Spirits run in the VUDO VM)
+  Rust, TypeScript, JSON Schema codegen; native via LLVM (beta)
+  MLIR: experimental — planned, not implemented
 
-Formal Verification
+Formal Verification (Planned — not implemented)
   Constraints are checked at compile time
   Trait laws are machine-verifiable
   Evolution migrations are type-safe

@@ -199,7 +199,7 @@ export function GameOfLife() {
             Game of Life Spirit
           </h1>
           <p className="text-[var(--text-muted)]">
-            Conway's cellular automaton compiled from DOL to WASM
+            Conway's cellular automaton, specified in DOL, running as WASM
           </p>
         </motion.div>
 
@@ -301,10 +301,11 @@ export function GameOfLife() {
           transition={{ delay: 0.4 }}
           className="mt-8 p-6 bg-[#0c0c0a]/50 rounded-xl border border-[#b9a06c]/20"
         >
-          <h3 className="text-center text-[var(--text-primary)] mb-4">Built with DOL v0.8.1</h3>
+          <h3 className="text-center text-[var(--text-primary)] mb-4">Designed in DOL</h3>
           <p className="text-center text-[var(--text-muted)] text-sm mb-4">
-            This demo is compiled from DOL (Domain Ontology Language) source code through a
-            multi-stage pipeline: <span className="text-[#e8c25a]">DOL → Rust → WASM</span>
+            The Spirit is specified in DOL (Domain Ontology Language) source code. The WASM running on
+            this page was built from a hand-written Rust port of that source
+            (<span className="text-[#e8c25a]">Rust → WASM</span> via wasm-bindgen), not from compiler output.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
@@ -328,7 +329,11 @@ export function GameOfLife() {
           transition={{ delay: 0.5 }}
           className="mt-6 p-6 bg-[#0c0c0a]/50 rounded-xl border border-[#e8c25a]/20"
         >
-          <h3 className="text-center text-[var(--text-primary)] mb-6">DOL Compilation Pipeline</h3>
+          <h3 className="text-center text-[var(--text-primary)] mb-2">Intended DOL Compilation Pipeline</h3>
+          <p className="text-center text-[var(--text-muted)] text-xs mb-6">
+            Planned — not implemented end-to-end. <code className="text-[#e8c25a]">dol-codegen</code> emits
+            Rust from these files, but that output does not yet build this demo.
+          </p>
 
           {/* Pipeline Diagram */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-sm">
@@ -367,8 +372,8 @@ export function GameOfLife() {
                     dol-codegen --target rust src/effects/browser.dol -o codegen/rust/src/generated/
                   </code>
                   <p className="text-[var(--text-muted)] text-xs mt-2">
-                    <span className="text-[#b9a06c]">gene</span> → Rust structs/enums |
-                    <span className="text-[#b9a06c] ml-1">spell</span> → pure functions |
+                    <span className="text-[#b9a06c]">gen</span> → Rust structs/enums |
+                    <span className="text-[#b9a06c] ml-1">fun</span> → pure functions |
                     <span className="text-[#b9a06c] ml-1">sex var</span> → thread_local! with RefCell
                   </p>
                 </div>
@@ -411,11 +416,11 @@ export function GameOfLife() {
             <h4 className="text-center text-[var(--text-muted)] text-xs uppercase tracking-widest mb-4">DOL Language Features Used</h4>
             <div className="grid grid-cols-3 gap-4 text-center text-xs">
               <div>
-                <span className="text-[#b9a06c] font-mono">gene</span>
+                <span className="text-[#b9a06c] font-mono">gen</span>
                 <p className="text-[var(--text-muted)] mt-1">Pure data types (Cell, Grid, Position)</p>
               </div>
               <div>
-                <span className="text-[#e8c25a] font-mono">spell</span>
+                <span className="text-[#e8c25a] font-mono">fun</span>
                 <p className="text-[var(--text-muted)] mt-1">Pure functions (rules, grid_ops)</p>
               </div>
               <div>

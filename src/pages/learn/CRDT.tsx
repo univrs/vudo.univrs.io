@@ -367,8 +367,9 @@ function DOLSection() {
       <div className="prose prose-invert max-w-none">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">DOL Integration</h2>
         <p className="text-[var(--text-secondary)]">
-          DOL's <code>@crdt(...)</code> annotations drive code generation. The compiler produces
-          Automerge-backed Rust structs with type-safe merge logic.
+          DOL's parser accepts <code>@crdt(...)</code> field annotations and records them in the AST.
+          Planned — not implemented: Automerge-backed Rust generation from these annotations exists only
+          as an experimental library that no DOL CLI uses yet. The schema and Rust below are illustrative.
         </p>
       </div>
 
@@ -390,7 +391,7 @@ constraint NonNegativeBalance on User {
       />
 
       <CodeBlock
-        title="Generated Rust (Automerge-backed)"
+        title="Illustrative Rust (Automerge-backed, not compiler output)"
         language="rust"
         code={`#[derive(Debug, Clone, Reconcile, Hydrate)]
 pub struct User {
