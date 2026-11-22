@@ -38,13 +38,13 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q3",
                 title: "Self-Hosting",
-                description: "DOL v0.2.3 Stage2 - Full self-hosting: 1532 tests",
-                status: "complete",
+                description: "Planned — not implemented. Bootstrap sources (dol/*.dol) parse, but the compiler generated from them does not build",
+                status: "future",
             },
             {
                 quarter: "Q4",
                 title: "WASM Pipeline",
-                description: "DOL v0.6.0 - HIR + MLIR + WASM compilation: 1,705 tests",
+                description: "HIR lowering + direct AST → WASM backend (MLIR experimental, not in CI)",
                 status: "complete",
             },
         ],
@@ -70,7 +70,7 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q3",
                 title: "DOL → WASM Compiler",
-                description: "Spirits compile DOL → WASM; next: host ABI + typed codegen",
+                description: "DOL 0.8.2: DOL-compiled Spirits call the 15-function VUDO host ABI and run in the VUDO VM; next: type enforcement + wider language coverage",
                 status: "current",
             },
             {
@@ -90,7 +90,7 @@ const roadmapData: YearData[] = [
             {
                 quarter: "Q1",
                 title: "Full Bootstrap",
-                description: "DOL v0.7.0 - DOL compiles DOL to WASM (self-hosting complete)",
+                description: "Planned — not implemented. DOL compiles DOL to WASM (self-hosting)",
                 status: "future",
             },
             {

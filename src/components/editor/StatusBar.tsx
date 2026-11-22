@@ -97,7 +97,7 @@ export function StatusBar({
         <div className="flex items-center gap-2 px-3 py-1 bg-[var(--border-color)] border border-[var(--border-color)] rounded-sm">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--glow-green)]" />
           <span className="text-xs font-mono text-[var(--text-muted)] tracking-wider">
-            DOL 2.0
+            DOL 0.8.0 (browser build)
           </span>
         </div>
       </div>

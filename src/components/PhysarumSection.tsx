@@ -1,5 +1,5 @@
 /**
- * VUDO OS - Physarum Section Component
+ * VUDO - Physarum Section Component
  *
  * A complete landing page section showcasing the Physarum decision network.
  * Drop this into the vudo.univrs.io site as a demonstration of

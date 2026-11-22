@@ -1,5 +1,5 @@
 /**
- * VUDO OS - Physarum Decision Network Types
+ * VUDO - Physarum Decision Network Types
  *
  * Type definitions for the Physarum polycephalum-inspired
  * distributed decision network visualization.

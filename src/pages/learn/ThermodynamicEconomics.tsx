@@ -37,7 +37,7 @@ export function ThermodynamicEconomics() {
           </div>
           <p className="text-[var(--text-secondary)] max-w-2xl">
             This Spirit calculates Energy Return on Energy Invested (EROEI) and Small-World network metrics.
-            All calculations run in your browser via WASM compiled from DOL → Rust.
+            All calculations run in your browser via WASM built from Rust that implements the DOL schemas.
           </p>
           {wasmReady ? (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e8c25a]/10 text-[#e8c25a] text-sm">
@@ -463,7 +463,7 @@ function CombinedSection() {
       <div className="p-4 rounded-lg bg-[#e8c25a]/10 border border-[#e8c25a]/30">
         <p className="text-sm text-[var(--text-secondary)]">
           <strong className="text-[#e8c25a]">What you just learned:</strong> This entire analysis runs in
-          your browser using WASM compiled from DOL schemas. No server required. The same code runs as a
+          your browser using WASM built from a Rust implementation of the DOL schemas. No server required. The same code runs as a
           CLI tool (<code className="text-[#e8c25a]">thermo</code>) and in the browser.
         </p>
       </div>

@@ -1,5 +1,5 @@
 /**
- * VUDO OS - Physarum Simulation Engine
+ * VUDO - Physarum Simulation Engine
  *
  * Core simulation logic for the Physarum polycephalum decision network.
  * Implements Murray's Law for tube thickness adaptation and

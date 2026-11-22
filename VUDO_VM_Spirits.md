@@ -1,5 +1,13 @@
 # Phase 2 Progress: VUDO VM & Spirits
 
+> **Historical snapshot (2025-12-25) — superseded.** The host-function table below is out of date.
+> The real VUDO VM host ABI is the 15 functions in the `vudo` import module registered by
+> `univrs-vudo/vudo/vudo_vm/src/linker.rs`: `host_log`, `host_time_now`, `host_random_bytes`,
+> `host_storage_read`, `host_storage_write`, `host_storage_delete`, `host_credit_balance`,
+> `host_credit_available`, `host_credit_reserve`, `host_credit_consume`, `host_credit_release`,
+> `host_credit_transfer`, `host_network_connect`, `host_network_listen`, `host_network_broadcast`.
+> DOL 0.8.2 compiles `sex fun` declarations against exactly these imports.
+
 > **Date:** December 25, 2025  
 > **Status:** In Progress  
 > **Repository:** `~/repos/univrs-vudo/`
@@ -227,7 +235,7 @@ base_cost = 10
 |-------------------|---------------------|--------|
 | `vudo-vm/genes/sandbox.dol` | `vudo_vm/src/sandbox.rs` | ✅ |
 | `vudo-vm/genes/capability.dol` | `vudo_vm/src/capability.rs` | ✅ |
-| `vudo-vm/traits/execution.dol` | `vudo_vm/src/host/*.rs` | ✅ |
+| `vudo-vm/traits/execution.dol` | `vudo_vm/src/host/*.rs` | ⚠️ design sketch — its host functions do not match the real linker ABI |
 | `spirits/genes/manifest.dol` | `spirit_runtime/src/manifest.rs` | ✅ |
 | `spirits/systems/registry.dol` | `spirit_runtime/src/registry/` | 📋 |
 

@@ -146,7 +146,7 @@ export function OutputPanel({ output, error, isCompiling, isExecuting = false }:
                   }}
                 />
                 <p className="text-[var(--text-muted)] text-sm font-mono">
-                  {isExecuting ? 'Executing Spirit...' : 'Compiling to MLIR...'}
+                  {isExecuting ? 'Executing Spirit...' : 'Compiling to WASM...'}
                 </p>
               </div>
             </motion.div>

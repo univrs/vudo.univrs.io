@@ -1,5 +1,5 @@
 /**
- * VUDO OS - Physarum Visualization Component
+ * VUDO - Physarum Visualization Component
  *
  * Three.js-powered 3D visualization of the Physarum decision network.
  * Renders the slime mold as glowing nodes connected by pulsing tubes.

@@ -49,7 +49,7 @@ export function Learn() {
             Learn <span className="text-[#e8c25a]">VUDO</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl">
-            Interactive tutorials that demonstrate the DOL → Rust → WASM pipeline.
+            Interactive tutorials built around DOL schemas, Rust and WASM.
             Build real Spirits while learning thermodynamic economics and network theory.
           </p>
         </motion.div>
@@ -96,7 +96,11 @@ export function Learn() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="p-8 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface)]"
         >
-          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">The Spirit Pipeline</h2>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">The Spirit Pipeline</h2>
+          <p className="text-sm text-[var(--text-muted)] mb-6">
+            Planned — not implemented end-to-end: the demos here run WASM built from hand-written Rust
+            that implements their DOL schemas, not from <code>dol-codegen</code> output.
+          </p>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
             <PipelineStep icon="📜" label="DOL Schema" sublabel="Type-safe definitions" />
             <Arrow />
