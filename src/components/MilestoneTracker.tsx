@@ -101,8 +101,8 @@ const phases: Phase[] = [
 ];
 
 const repositories: Repository[] = [
-    // dol 0.8.2 root crate: 2,183 tests (default features), 2,405 with --features cli,serde,wasm
-    { name: "univrs-dol", url: "https://github.com/univrs/dol", status: "stable", tests: 2405 },
+    // dol 0.8.2 root crate: 2,512 tests with --features cli,serde,wasm, including doctests
+    { name: "univrs-dol", url: "https://github.com/univrs/dol", status: "stable", tests: 2512 },
     { name: "univrs-enr", url: "https://github.com/univrs/enr", status: "active", tests: 0 },
     { name: "univrs-network", url: "https://github.com/univrs/network", status: "pending", tests: 0 },
     { name: "univrs-vudo", url: "https://github.com/univrs/vudo", status: "stable", tests: 402 },
