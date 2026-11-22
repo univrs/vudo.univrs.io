@@ -36,7 +36,9 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-// Simple DOL validator (stub - replace with real compiler later)
+// Stub validator, NOT the DOL compiler: it only checks for a `spirit` keyword and
+// balanced braces, and never produces WASM. The real compiler runs in the browser
+// worker (dol_wasm); this endpoint is only hit when the worker fails to start.
 function compileDol(source: string): { success: boolean; error?: string; messages: string[] } {
   const messages: string[] = [];
 
@@ -66,8 +68,8 @@ function compileDol(source: string): { success: boolean; error?: string; message
     messages.push('Found public modifier');
   }
 
-  messages.push('Syntax validation passed');
-  messages.push('Cloud compilation complete');
+  messages.push('Basic checks passed (keyword + brace matching only)');
+  messages.push('Server fallback is a stub validator, not the DOL compiler: no WASM was produced');
 
   return { success: true, messages };
 }
