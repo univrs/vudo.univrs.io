@@ -323,7 +323,7 @@ self.onmessage = async (e: MessageEvent<CompileRequest>) => {
         output: validationResult.valid ? {
           success: true,
           bytecode: null,
-          messages: ['Compiled (fallback mode)'],
+          messages: ['Basic syntax check only (fallback mode: DOL compiler not loaded, no WASM produced)'],
           ast: validationResult.ast,
           metadata: {
             version: '0.1.0-fallback',

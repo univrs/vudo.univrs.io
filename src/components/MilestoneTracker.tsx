@@ -10,7 +10,7 @@ interface Phase {
     id: string;
     name: string;
     status: "complete" | "active" | "pending";
-    tests: number;
+    tests?: number;
     description: string;
     deliverables: string[];
 }
@@ -78,7 +78,6 @@ const phases: Phase[] = [
         id: "phase3",
         name: "Phase 3: DOL -> WASM Pipeline",
         status: "active",
-        tests: 161,
         description: "DOL -> AST -> WASM (wasm-encoder); DOL 0.8.2 Spirits link and run in the VUDO VM",
         deliverables: ["Function body codegen", "Gen structs & methods", "Spirit pipeline wired", "VUDO host ABI (15 functions)", "Next: type enforcement + language coverage"],
     },
@@ -108,13 +107,14 @@ const repositories: Repository[] = [
     { name: "univrs-vudo", url: "https://github.com/univrs/vudo", status: "stable", tests: 402 },
 ];
 
+// dolLines: line counts of univrs/enr dol/*.dol (pre-0.8 ontology syntax; not compiled)
 const enrSubsystems: ENRSubsystem[] = [
-    { name: "Core", status: "active", dolLines: 529, formula: "Credits, NodeId, CreditTransfer" },
-    { name: "Entropy", status: "pending", dolLines: 405, formula: "S = wn*Sn + wc*Sc + ws*Ss + wt*St" },
-    { name: "Nexus", status: "pending", dolLines: 525, formula: "Election, Gradient Aggregation" },
-    { name: "Revival", status: "pending", dolLines: 521, formula: "40% / 25% / 20% / 15%" },
+    { name: "Core", status: "active", dolLines: 528, formula: "Credits, NodeId, CreditTransfer" },
+    { name: "Entropy", status: "pending", dolLines: 404, formula: "S = wn*Sn + wc*Sc + ws*Ss + wt*St" },
+    { name: "Nexus", status: "pending", dolLines: 524, formula: "Election, Gradient Aggregation" },
+    { name: "Revival", status: "pending", dolLines: 520, formula: "40% / 25% / 20% / 15%" },
     { name: "Septal", status: "pending", dolLines: 463, formula: "Circuit Breaker, Woronin" },
-    { name: "Pricing", status: "pending", dolLines: 651, formula: "Fixed / Dynamic / Auction" },
+    { name: "Pricing", status: "pending", dolLines: 650, formula: "Fixed / Dynamic / Auction" },
 ];
 
 // Adoption metrics - the gaps we're showing honestly
@@ -163,7 +163,6 @@ function StatusDot({ status }: { status: "complete" | "active" | "pending" | "st
 export function MilestoneTracker() {
     const [activeTab, setActiveTab] = useState<"phases" | "repos" | "enr">("phases");
 
-    const totalTests = phases.reduce((sum, p) => sum + p.tests, 0);
     const completedPhases = phases.filter((p) => p.status === "complete").length;
     const totalDolLines = enrSubsystems.reduce((sum, s) => sum + s.dolLines, 0);
 
@@ -200,14 +199,6 @@ export function MilestoneTracker() {
                         </div>
                         <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
                             Phases
-                        </div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-light text-[#e8c25a]">
-                            {totalTests.toLocaleString()}
-                        </div>
-                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">
-                            Tests
                         </div>
                     </div>
                     <div className="text-center">
@@ -296,9 +287,11 @@ export function MilestoneTracker() {
                                         <span className="font-medium text-[var(--text-primary)] flex-1">
                                             {phase.name}
                                         </span>
-                                        <span className="text-xs text-[#e8c25a] bg-[#e8c25a]/10 px-2 py-1 rounded">
-                                            {phase.tests} tests
-                                        </span>
+                                        {phase.tests !== undefined && (
+                                            <span className="text-xs text-[#e8c25a] bg-[#e8c25a]/10 px-2 py-1 rounded">
+                                                {phase.tests} tests
+                                            </span>
+                                        )}
                                     </div>
                                     <p className="text-sm text-[var(--text-muted)] mb-3 ml-6">
                                         {phase.description}

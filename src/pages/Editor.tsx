@@ -283,8 +283,8 @@ export function Editor() {
         }
       }
     } else if (result.messages) {
-      // Fallback format from cloud API or worker fallback
-      lines.push('✓ Compilation complete');
+      // Fallback format from the stub cloud API or worker fallback (no real compilation)
+      lines.push('✓ Basic checks passed (fallback: DOL compiler unavailable, not compiled)');
       lines.push('');
       for (const msg of result.messages) {
         lines.push(`→ ${msg}`);
