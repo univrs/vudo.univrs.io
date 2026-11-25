@@ -1,0 +1,32 @@
+// host_spirit.dol - fixture for the in-browser `vudo` host module.
+// Bodiless `sex fun`s compile (dol 0.8.2) to imports from WASM module "vudo".
+// Regenerate host_spirit.wasm with: node tests/vudo-host/build-fixture.mjs
+
+sex fun host_log(level: i32, msg: string) -> i32
+sex fun host_time_now() -> i64
+sex fun host_storage_write(key: string, val: string) -> i32
+sex fun host_network_broadcast(msg: string) -> i64
+
+// Allowed in the browser: logs at Info (2), returns 0.
+sex fun greet() -> i64 {
+    return host_log(2, "Hello from a 0.8.2 Spirit")
+}
+
+// Allowed in the browser: Unix time in nanoseconds.
+sex fun now() -> i64 {
+    return host_time_now()
+}
+
+// Denied in the browser: returns -1 (CAPABILITY_DENIED).
+sex fun persist() -> i64 {
+    return host_storage_write("key", "value")
+}
+
+// Denied in the browser: returns -1 (CAPABILITY_DENIED).
+sex fun shout() -> i64 {
+    return host_network_broadcast("hello peers")
+}
+
+fun add(a: i64, b: i64) -> i64 {
+    return a + b
+}

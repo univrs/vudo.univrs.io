@@ -1,4 +1,5 @@
 // src/workers/compiler.worker.ts
+import { createVudoHost, VUDO_MODULE } from '../lib/vudo-host';
 
 // Types for worker messages
 interface CompileRequest {
@@ -41,6 +42,7 @@ async function executeWasm(bytecode: Uint8Array, ast: object[]): Promise<Executi
   try {
     // Instantiate the WASM module
     // WebAssembly.instantiate with BufferSource returns { module, instance }
+    const host = createVudoHost();
     const { instance } = await WebAssembly.instantiate(
       bytecode.buffer as ArrayBuffer,
       {
@@ -50,9 +52,12 @@ async function executeWasm(bytecode: Uint8Array, ast: object[]): Promise<Executi
           emit: (eventId: number, value: bigint) => {
             console.log(`[WASM] emit event ${eventId}: ${value}`);
           }
-        }
+        },
+        // DOL 0.8.2 host-calling Spirits import from module "vudo"
+        [VUDO_MODULE]: host.imports,
       }
     );
+    host.bind(instance);
 
     const exports = instance.exports;
     console.log('[Worker] WASM exports:', Object.keys(exports));
