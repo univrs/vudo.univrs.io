@@ -1,0 +1,48 @@
+;; Imports all 15 VUDO host functions with the exact signatures registered in
+;; univrs-vudo vudo/vudo_vm/src/linker.rs, and exports a caller for each.
+;; Calling through WASM enforces i32/i64 result types at the JS boundary.
+;; Rebuild: wasm-tools parse abi_all.wat -o abi_all.wasm
+(module
+  (import "vudo" "host_time_now"          (func $time_now (result i64)))
+  (import "vudo" "host_random_bytes"      (func $random (param i32 i32) (result i32)))
+  (import "vudo" "host_log"               (func $log (param i32 i32 i32) (result i32)))
+  (import "vudo" "host_storage_read"      (func $s_read (param i32 i32 i32 i32) (result i32)))
+  (import "vudo" "host_storage_write"     (func $s_write (param i32 i32 i32 i32) (result i32)))
+  (import "vudo" "host_storage_delete"    (func $s_delete (param i32 i32) (result i32)))
+  (import "vudo" "host_network_connect"   (func $n_connect (param i32 i32) (result i64)))
+  (import "vudo" "host_network_listen"    (func $n_listen (param i32) (result i64)))
+  (import "vudo" "host_network_broadcast" (func $n_broadcast (param i32 i32) (result i64)))
+  (import "vudo" "host_credit_balance"    (func $c_balance (param i32) (result i64)))
+  (import "vudo" "host_credit_transfer"   (func $c_transfer (param i32 i32 i64) (result i32)))
+  (import "vudo" "host_credit_reserve"    (func $c_reserve (param i32 i64) (result i64)))
+  (import "vudo" "host_credit_release"    (func $c_release (param i64) (result i32)))
+  (import "vudo" "host_credit_consume"    (func $c_consume (param i64) (result i32)))
+  (import "vudo" "host_credit_available"  (func $c_available (param i32) (result i64)))
+
+  (memory (export "memory") 1)
+  ;; "abi-ok" at 0; a 32-byte zero account at 64; key/value at 128/136.
+  (data (i32.const 0) "abi-ok")
+  (data (i32.const 128) "key")
+  (data (i32.const 136) "value")
+
+  (func (export "host_time_now") (result i64) (call $time_now))
+  (func (export "host_random_bytes") (result i32) (call $random (i32.const 256) (i32.const 16)))
+  (func (export "host_log") (result i32) (call $log (i32.const 2) (i32.const 0) (i32.const 6)))
+  (func (export "host_log_bad_level") (result i32) (call $log (i32.const 9) (i32.const 0) (i32.const 6)))
+  (func (export "host_log_oob") (result i32) (call $log (i32.const 2) (i32.const 65530) (i32.const 64)))
+  (func (export "host_storage_read") (result i32)
+    (call $s_read (i32.const 128) (i32.const 3) (i32.const 512) (i32.const 64)))
+  (func (export "host_storage_write") (result i32)
+    (call $s_write (i32.const 128) (i32.const 3) (i32.const 136) (i32.const 5)))
+  (func (export "host_storage_delete") (result i32) (call $s_delete (i32.const 128) (i32.const 3)))
+  (func (export "host_network_connect") (result i64) (call $n_connect (i32.const 136) (i32.const 5)))
+  (func (export "host_network_listen") (result i64) (call $n_listen (i32.const 8080)))
+  (func (export "host_network_broadcast") (result i64) (call $n_broadcast (i32.const 136) (i32.const 5)))
+  (func (export "host_credit_balance") (result i64) (call $c_balance (i32.const 64)))
+  (func (export "host_credit_transfer") (result i32)
+    (call $c_transfer (i32.const 64) (i32.const 64) (i64.const 1)))
+  (func (export "host_credit_reserve") (result i64) (call $c_reserve (i32.const 64) (i64.const 1)))
+  (func (export "host_credit_release") (result i32) (call $c_release (i64.const 1)))
+  (func (export "host_credit_consume") (result i32) (call $c_consume (i64.const 1)))
+  (func (export "host_credit_available") (result i64) (call $c_available (i32.const 64)))
+)

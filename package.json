@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "test:vudo-host": "NODE_PATH=${NODE_PATH:-$HOME/repos/tools/playwright/node_modules} node tests/vudo-host/run.mjs",
     "deploy": "wrangler pages deploy dist"
   },
   "dependencies": {
